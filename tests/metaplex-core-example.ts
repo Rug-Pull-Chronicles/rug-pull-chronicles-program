@@ -1,8 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { MetaplexCoreExample } from "../target/types/rug_pull_chronicles_program";
+import { MetaplexCoreExample } from "../target/types/metaplex_core_example";
 
-import wallet from "../Turbin3-wallet.json";
+import wallet from "../Turbin3-wallet.json"
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { createPluginV2, createV1, fetchAssetV1, mplCore, pluginAuthority, MPL_CORE_PROGRAM_ID, createCollection } from "@metaplex-foundation/mpl-core";
 import { base58, createSignerFromKeypair, generateSigner, signerIdentity, sol } from "@metaplex-foundation/umi";
