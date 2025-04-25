@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-metaplex_core_example = "9Tc3PoSyNr8JJ2Q47AyovJiihSwXQM2eKTAUf4szziMu"
+metaplex_core_example = "AisPtd8Pkci6V6x38MeZHBd5i7riJU8jCuHKtLLThCNM"
 
 [registry]
 url = "https://api.apr.dev"

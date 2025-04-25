@@ -22,7 +22,7 @@
 
 use anchor_lang::prelude::*;
 
-declare_id!("9Tc3PoSyNr8JJ2Q47AyovJiihSwXQM2eKTAUf4szziMu");
+declare_id!("AisPtd8Pkci6V6x38MeZHBd5i7riJU8jCuHKtLLThCNM");
 
 mod instructions;
 use instructions::*;
