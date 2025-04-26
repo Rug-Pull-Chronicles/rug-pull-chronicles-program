@@ -1,12 +1,4 @@
-pub mod initialize;
-pub use initialize::*;
 pub mod mint_standard_nft;
 pub use mint_standard_nft::*;
 pub mod create_collection;
 pub use create_collection::*;
-// pub mod mint_rugged_nft;
-// pub use mint_rugged_nft::*;
-// pub mod update_traits;
-// pub use update_traits::*;
-// pub mod verify_rugged_user;
-// pub use verify_rugged_user::*;
