@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { RugPullChroniclesProgram } from "../target/types/rug_pull_chronicles   _program";
+import { RugPullChroniclesProgram } from "../target/types/rug_pull_chronicles_program";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { assert } from "chai";
 
@@ -22,7 +22,7 @@ import {
 } from "@metaplex-foundation/umi";
 import wallet from "../Turbin3-wallet.json"
 import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
-import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
+// import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 
 const umi = createUmi("http://127.0.0.1:8899").use(mplCore());
 
@@ -30,60 +30,35 @@ let keypair = umi.eddsa.createKeypairFromSecretKey(new Uint8Array(wallet));
 const signer = createSignerFromKeypair(umi, keypair);
 umi.use(signerIdentity(signer));
 
-const collectionAsset = generateSigner(umi);
-const asset = generateSigner(umi);
+// Separate signers for each collection
+const ruggedCollectionSigner = generateSigner(umi);
+const standardCollectionSigner = generateSigner(umi);
+const assetSigner = generateSigner(umi);
+
+
+// Seed constants
+const CONFIG_SEED = Buffer.from("config");
+const UPDATE_AUTH_SEED = Buffer.from("upd_auth");
+const TREASURY_SEED = Buffer.from("treasury");
+const ANTISCAM_SEED = Buffer.from("antiscam");
 
 describe("Rug Pull Chronicles Program", () => {
+    // Configure the client to use the local cluster.
+    const provider = anchor.AnchorProvider.env();
+    anchor.setProvider(provider);
 
-      // Configure the client to use the local cluster.
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
+    const program = anchor.workspace.RugPullChroniclesProgram as Program<RugPullChroniclesProgram>;
+    const programId = program.programId;
 
-  const program = anchor.workspace.RugPullChroniclesProgram as Program<RugPullChroniclesProgram>;
-
-    // Collection signers
-    const ruggedCollectionSigner = generateSigner(umi);
-    const standardCollectionSigner = generateSigner(umi);
-
-    // Seed constants
-    const CONFIG_SEED = Buffer.from("config");
-    const UPDATE_AUTH_SEED = Buffer.from("upd_auth");
-    const TREASURY_SEED = Buffer.from("treasury");
-    const ANTISCAM_SEED = Buffer.from("antiscam");
-
-    // PDAs
-    let configPDA: PublicKey;
-    let updateAuthorityPDA: PublicKey;
-    let treasuryPDA: PublicKey;
-    let antiScamTreasuryPDA: PublicKey;
+    console.log("Program ID:", programId);
 
     before(async () => {
-        // Find PDAs
-        [configPDA] = PublicKey.findProgramAddressSync(
-            [CONFIG_SEED],
-            programId
-        );
-
-        [updateAuthorityPDA] = PublicKey.findProgramAddressSync(
-            [UPDATE_AUTH_SEED],
-            programId
-        );
-
-        [treasuryPDA] = PublicKey.findProgramAddressSync(
-            [TREASURY_SEED],
-            programId
-        );
-
-        [antiScamTreasuryPDA] = PublicKey.findProgramAddressSync(
-            [TREASURY_SEED, ANTISCAM_SEED],
-            programId
-        );
-
         // Request airdrop to ensure we have enough SOL
         try {
             console.log("Requesting airdrop...");
-            await umi.rpc.airdrop(umi.identity.publicKey, sol(2));
-            console.log("Airdrop successful");
+            let airdrop1 = await umi.rpc.airdrop(umi.identity.publicKey, sol(2));
+            console.log("Airdrop successful:");
+            console.log(airdrop1);
         } catch (error) {
             console.log("Airdrop failed, but continuing (might already have funds):", error.message);
         }
@@ -125,17 +100,33 @@ describe("Rug Pull Chronicles Program", () => {
     it("Initializes the program with collections", async () => {
         console.log("Initializing program with collections...");
 
-        // Load the program using Anchor
-        const provider = anchor.AnchorProvider.env();
-        anchor.setProvider(provider);
-        const program = anchor.workspace.RugPullChroniclesProgram;
+        // Calculate PDAs inside the test case
+        const [configPDA] = PublicKey.findProgramAddressSync(
+            [CONFIG_SEED],
+            programId
+        );
+
+        const [updateAuthorityPDA] = PublicKey.findProgramAddressSync(
+            [UPDATE_AUTH_SEED],
+            programId
+        );
+
+        const [treasuryPDA] = PublicKey.findProgramAddressSync(
+            [TREASURY_SEED],
+            programId
+        );
+
+        const [antiScamTreasuryPDA] = PublicKey.findProgramAddressSync(
+            [TREASURY_SEED, ANTISCAM_SEED],
+            programId
+        );
 
         try {
             // Call the initialize instruction
             const tx = await program.methods
                 .initialize()
                 .accounts({
-                    payer: wallet.publicKey,
+                    payer: provider.wallet.publicKey,
                     config: configPDA,
                     updateAuthorityPda: updateAuthorityPDA,
                     treasuryPda: treasuryPDA,
@@ -143,7 +134,7 @@ describe("Rug Pull Chronicles Program", () => {
                     ruggedCollectionMint: ruggedCollectionSigner.publicKey,
                     standardCollectionMint: standardCollectionSigner.publicKey,
                     mplCoreProgram: MPL_CORE_PROGRAM_ID,
-                    systemProgram: anchor.web3.SystemProgram.programId,
+                    systemProgram: SYSTEM_PROGRAM_ID,
                 })
                 .rpc();
 
