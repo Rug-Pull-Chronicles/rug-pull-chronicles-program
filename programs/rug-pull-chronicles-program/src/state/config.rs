@@ -21,7 +21,7 @@ pub struct Config {
     pub antiscam_treasury: Pubkey,
 
     /// The two collection mint accounts we CPI-created
-    pub rugged_collection:   Pubkey,
+    // pub rugged_collection:   Pubkey,
     pub standard_collection: Pubkey,
 }
 

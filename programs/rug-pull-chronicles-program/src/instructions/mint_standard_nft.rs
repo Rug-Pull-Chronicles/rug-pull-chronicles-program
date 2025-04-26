@@ -1,17 +1,17 @@
-// programs/rugged-nft/src/instructions/mint_standard_nft.rs
-use crate::{constants::*, cpi, state::*, utils};
 use anchor_lang::prelude::*;
+use crate::{constants::*, state::*};
+use mpl_core::{instructions::CreateV1CpiBuilder, types::{Attribute, Attributes, DataState, PluginAuthorityPair}};
 
 #[derive(Accounts)]
 pub struct MintStandardNft<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
-    #[account(init, payer = payer,
-      seeds = [STANDARD_NFT_SEED, payer.key().as_ref()],
+    pub user: Signer<'info>,
+    #[account(init, payer = user,
+      seeds = [STANDARD_NFT_SEED, user.key().as_ref()],
       bump,
       space = 8 + std::mem::size_of::<StandardNft>() + 64
     )]
-    pub standard_nft: Box<Account<'info, StandardNft>>,
+    pub standard_nft_mint: Box<Account<'info, StandardNft>>,
 
     /// Config account with collection addresses
     #[account(
@@ -36,19 +36,39 @@ pub struct MintStandardNft<'info> {
     )]
     pub update_authority_pda: UncheckedAccount<'info>,
 
+    /// CHECK: This is the ID of the Metaplex Core program
+    #[account(address = mpl_core::ID)]
+    pub mpl_core_program: UncheckedAccount<'info>,
+
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<MintStandardNft>, traits: Vec<u8>) -> Result<()> {
-    utils::validate_traits(&traits)?;
-    // call MPL-CORE CPI to mint an asset in the standard collection
-    cpi::mint_standard(
-        &ctx.accounts.standard_nft,
-        &ctx.accounts.payer.to_account_info(),
-        &ctx.accounts.system_program.to_account_info(),
-        traits,
-        &ctx.accounts.standard_collection,
-        &ctx.accounts.update_authority_pda.to_account_info(),
-    )?;
-    Ok(())
+impl<'info> MintStandardNft<'info> {
+    pub fn mint_core_asset(&mut self) -> Result<()> {
+        CreateV1CpiBuilder::new(&self.mpl_core_program.to_account_info())
+            .asset(&self.standard_nft_mint.to_account_info())
+            .collection(Some(&self.standard_collection.to_account_info()))
+            .authority(Some(&self.user.to_account_info()))
+            .payer(&self.user.to_account_info())
+            .owner(Some(&self.user.to_account_info()))
+            .update_authority(Some(&self.update_authority_pda.to_account_info()))
+            .system_program(&self.system_program.to_account_info())
+            .data_state(DataState::AccountState)
+            .name("My Asset".to_string())
+            .uri("https://myasset.com".to_string())
+            .plugins(vec![PluginAuthorityPair {
+                plugin: mpl_core::types::Plugin::Attributes(Attributes { attribute_list: 
+                    vec![
+                        Attribute { 
+                            key: "key".to_string(), 
+                            value: "value".to_string() 
+                        }
+                    ]
+                }), 
+                authority: None
+            }])
+            .invoke()?;
+        
+        Ok(())
+    }
 }

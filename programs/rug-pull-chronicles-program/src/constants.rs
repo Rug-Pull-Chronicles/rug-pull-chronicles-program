@@ -5,7 +5,7 @@ pub const RUGGED_NFT_SEED: &[u8] = b"rugged_nft";
 pub const STANDARD_NFT_SEED: &[u8] = b"standard_nft";
 pub const VERIFICATION_SEED: &[u8] = b"verify_user";
 pub const FEE_BASIS_POINTS: u16 = 300; // e.g. 3% fee to charity
-pub const MPL_CORE_PROGRAM_ID: Pubkey = mpl_core::ID; // imported in cpi.rs
+pub const MPL_CORE_PROGRAM_ID: Pubkey = pubkey!("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d");
 
 // Initialize instruction seeds
 pub const CONFIG_SEED: &[u8] = b"config";
