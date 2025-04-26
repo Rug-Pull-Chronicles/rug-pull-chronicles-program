@@ -1,7 +1,5 @@
 pub mod initialize;
 pub use initialize::*;
-pub mod mint_asset;
-pub use mint_asset::*;
 pub mod mint_standard_nft;
 pub use mint_standard_nft::*;
 pub mod mint_rugged_nft;
