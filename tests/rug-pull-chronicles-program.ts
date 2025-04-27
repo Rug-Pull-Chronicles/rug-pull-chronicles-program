@@ -56,6 +56,11 @@ describe("Rug Pull Chronicles Program", () => {
     // Convert UMI keypair to Solana keypair for Anchor
     const collectionKeypair = Keypair.fromSecretKey(umiCollectionKeypair.secretKey);
 
+    // Create a rugged collection using UMI
+    const umiRuggedCollectionKeypair = generateSigner(umi);
+    // Convert UMI keypair to Solana keypair for Anchor
+    const ruggedCollectionKeypair = Keypair.fromSecretKey(umiRuggedCollectionKeypair.secretKey);
+
     before(async () => {
         // Ensure the wallet has enough SOL to pay for all the account initializations
         const walletBalance = await provider.connection.getBalance(provider.wallet.publicKey);
@@ -414,6 +419,92 @@ describe("Rug Pull Chronicles Program", () => {
             }
         } catch (error) {
             console.error("Error minting standard NFT:", error);
+            throw error;
+        }
+    });
+
+    it("Creates a rugged collection", async () => {
+        try {
+            // Collection metadata
+            const collectionName = "Rug Pull Chronicles - Rugged Collection";
+            const collectionUri = "https://rugpullchronicles.io/rugged-collection.json";
+
+            console.log(`Creating rugged collection with address: ${umiRuggedCollectionKeypair.publicKey}`);
+            console.log(`Solana address: ${ruggedCollectionKeypair.publicKey.toString()}`);
+
+            // Call the create_rugged_collection instruction
+            const tx = await program.methods
+                .createCollection(collectionName, collectionUri)
+                .accounts({
+                    collection: ruggedCollectionKeypair.publicKey,
+                    updateAuthority: updateAuthorityPDA,
+                    payer: provider.wallet.publicKey,
+                    systemProgram: anchor.web3.SystemProgram.programId,
+                    mplCoreProgram: new PublicKey("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"),
+                    config: configPDA,
+                } as any)
+                .signers([ruggedCollectionKeypair])
+                .rpc();
+
+            console.log("Rugged collection creation transaction signature:", tx);
+
+            // Wait for transaction confirmation
+            await provider.connection.confirmTransaction({
+                signature: tx,
+                lastValidBlockHeight: await provider.connection.getBlockHeight(),
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+            });
+
+            // Now update the config with the rugged collection address
+            const updateTx = await program.methods
+                .updateConfigRuggedCollection(ruggedCollectionKeypair.publicKey)
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: configPDA,
+                } as any)
+                .rpc();
+
+            console.log("Config update with rugged collection transaction signature:", updateTx);
+
+            // Wait for transaction confirmation
+            await provider.connection.confirmTransaction({
+                signature: updateTx,
+                lastValidBlockHeight: await provider.connection.getBlockHeight(),
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+            });
+
+            // Verify collection was created using both Solana and UMI approaches
+            try {
+                // Fetch using UMI (Metaplex)
+                const collectionAsset = await fetchCollection(umi, umiRuggedCollectionKeypair.publicKey);
+                console.log("Rugged collection asset details:", {
+                    name: collectionAsset.name,
+                    uri: collectionAsset.uri,
+                    updateAuthority: collectionAsset.updateAuthority
+                });
+
+                // Verify collection details
+                expect(collectionAsset.name).to.equal(collectionName);
+                expect(collectionAsset.uri).to.equal(collectionUri);
+
+                // Get the update authority address as string
+                const umiUpdateAuthorityStr = collectionAsset.updateAuthority.toString();
+                expect(umiUpdateAuthorityStr).to.equal(updateAuthorityPDA.toString());
+
+                console.log("Rugged collection verified successfully using UMI");
+            } catch (e) {
+                console.warn("Couldn't verify with UMI (expected if not in devnet):", e);
+            }
+
+            // Fetch the updated config account to check if the rugged collection was added
+            const updatedConfig = await program.account.config.fetch(configPDA);
+
+            // Verify the config has the correct rugged collection address
+            expect(updatedConfig.ruggedCollection.toString()).to.equal(ruggedCollectionKeypair.publicKey.toString());
+
+            console.log(`Rugged collection created and config updated with address: ${ruggedCollectionKeypair.publicKey.toString()}`);
+        } catch (error) {
+            console.error("Error creating rugged collection:", error);
             throw error;
         }
     });

@@ -16,6 +16,8 @@ pub struct Config {
     pub antiscam_treasury_bump: u8,
     /// bump seed for standard_collection
     pub standard_collection_bump: u8,
+    /// bump seed for rugged_collection
+    pub rugged_collection_bump: u8,
     /// Config account's own bump
     pub config_bump: u8,
     /// PDA that becomes MPL-Core's update authority
@@ -24,14 +26,16 @@ pub struct Config {
     pub treasury: Pubkey,
     /// Where we send anti-scam donations
     pub antiscam_treasury: Pubkey,
-    /// The collection mint address
+    /// The standard collection mint address
     pub standard_collection: Pubkey,
+    /// The rugged collection mint address
+    pub rugged_collection: Pubkey,
 }
 
 impl Space for Config {
     // 8   — Anchor discriminator
     // 8   — seed (u64)
-    // 6   — six bumps (u8 × 6)
-    // 4×32— four Pubkeys
-    const INIT_SPACE: usize = 8 + 8 + 6 + 4 * 32;
+    // 7   — seven bumps (u8 × 7)
+    // 5×32— five Pubkeys
+    const INIT_SPACE: usize = 8 + 8 + 7 + 5 * 32;
 }

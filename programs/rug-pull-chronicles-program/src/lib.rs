@@ -41,6 +41,13 @@ pub mod rug_pull_chronicles_program {
         ctx.accounts.update_collection(collection_address)
     }
 
+    pub fn update_config_rugged_collection(
+        ctx: Context<UpdateConfig>,
+        collection_address: Pubkey,
+    ) -> Result<()> {
+        ctx.accounts.update_rugged_collection(collection_address)
+    }
+
     pub fn add_collection_royalties(
         ctx: Context<AddCollectionPlugin>,
         basis_points: u16,
