@@ -1,14 +1,14 @@
 use anchor_lang::prelude::*;
 
 #[account]
-pub struct StandardNft {
-    /// Who owns this “standard” mint record
+pub struct RuggedNft {
+    /// Who owns this “rugged” mint record
     pub owner: Pubkey,
     /// Simple byte-vector for whatever trait encoding you choose
     pub traits: Vec<u8>,
 }
 
-impl Space for StandardNft {
+impl Space for RuggedNft {
     // 8    (discriminator)
     // 32   (owner)
     // 4+N  (vector: 4-byte length + actual bytes)

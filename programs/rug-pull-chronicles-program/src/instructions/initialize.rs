@@ -72,13 +72,13 @@ impl<'info> Initialize<'info> {
             treasury_bump: bumps.treasury_pda,
             antiscam_treasury_bump: bumps.anti_scam_treasury_pda,
             standard_collection_bump: 0, // Default bump, will be updated later
-            rugged_collection_bump: 0,   // Default bump, will be updated later
+            scammed_collection_bump: 0,   // Default bump, will be updated later
             config_bump: bumps.config,
             update_authority: self.update_authority_pda.key(),
             treasury: self.treasury_pda.key(),
             antiscam_treasury: self.anti_scam_treasury_pda.key(),
             standard_collection: default_collection,
-            rugged_collection: default_collection,
+            scammed_collection: default_collection,
         });
 
         Ok(())

@@ -2,6 +2,8 @@
 pub mod mint_standard_nft;
 // Commented out as it's unused right now
 // pub use mint_standard_nft::*;
+pub mod mint_scammed_nft;
+// pub use mint_scammed_nft::*;
 pub mod create_collection;
 pub use create_collection::*;
 pub mod initialize;

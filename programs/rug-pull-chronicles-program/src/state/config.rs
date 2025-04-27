@@ -16,8 +16,8 @@ pub struct Config {
     pub antiscam_treasury_bump: u8,
     /// bump seed for standard_collection
     pub standard_collection_bump: u8,
-    /// bump seed for rugged_collection
-    pub rugged_collection_bump: u8,
+    /// bump seed for scammed_collection
+    pub scammed_collection_bump: u8,
     /// Config account's own bump
     pub config_bump: u8,
     /// PDA that becomes MPL-Core's update authority
@@ -29,7 +29,7 @@ pub struct Config {
     /// The standard collection mint address
     pub standard_collection: Pubkey,
     /// The rugged collection mint address
-    pub rugged_collection: Pubkey,
+    pub scammed_collection: Pubkey,
 }
 
 impl Space for Config {

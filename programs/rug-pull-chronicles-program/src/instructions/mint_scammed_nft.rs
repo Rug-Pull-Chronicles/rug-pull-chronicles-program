@@ -7,8 +7,8 @@ use mpl_core::{
 };
 
 #[derive(Accounts)]
-#[instruction(name: String, uri: String, scam_year: String, usd_amount_stolen: String, platform_category: String, type_of_attack: String)]
-pub struct MintStandardNft<'info> {
+#[instruction(name: String, uri: String, scam_details: String)]
+pub struct MintScammedNft<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
@@ -21,14 +21,14 @@ pub struct MintStandardNft<'info> {
     #[account(seeds = [b"upd_auth"], bump)]
     pub update_authority_pda: UncheckedAccount<'info>,
 
-    /// The standard collection account
+    /// The scammed collection account
     /// When adding an asset to a collection, the collection becomes the asset's update authority
     /// CHECK: This is verified against the config account
     #[account(
       mut,
-      constraint = standard_collection.key() == config.standard_collection
+      constraint = scammed_collection.key() == config.scammed_collection
     )]
-    pub standard_collection: AccountInfo<'info>,
+    pub scammed_collection: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
     /// CHECK: This is the ID of the Metaplex Core program
@@ -40,18 +40,15 @@ pub struct MintStandardNft<'info> {
     pub config: Account<'info, Config>,
 }
 
-impl<'info> MintStandardNft<'info> {
+impl<'info> MintScammedNft<'info> {
     pub fn mint_core_asset(
         &mut self,
         name: String,
         uri: String,
-        scam_year: String,
-        usd_amount_stolen: String,
-        platform_category: String,
-        type_of_attack: String,
+        scam_details: String,
     ) -> Result<()> {
         // Get the account infos first
-        let collection_account = &self.standard_collection;
+        let collection_account = &self.scammed_collection;
         let payer_account = &self.user.to_account_info();
         let owner_account = &self.user.to_account_info();
         let system_program_account = &self.system_program.to_account_info();
@@ -78,10 +75,7 @@ impl<'info> MintStandardNft<'info> {
 
         // Add the scam attributes plugin
         self.add_attributes_plugin(
-            scam_year,
-            usd_amount_stolen,
-            platform_category,
-            type_of_attack,
+            scam_details,
             bump,
         )?;
 
@@ -90,30 +84,15 @@ impl<'info> MintStandardNft<'info> {
 
     pub fn add_attributes_plugin(
         &self,
-        scam_year: String,
-        usd_amount_stolen: String,
-        platform_category: String,
-        type_of_attack: String,
+        scam_details: String,
         bump: u8,
     ) -> Result<()> {
         // Create attributes list with the scam details
         let attributes = Attributes {
             attribute_list: vec![
                 Attribute {
-                    key: "scam_year".to_string(),
-                    value: scam_year,
-                },
-                Attribute {
-                    key: "usd_amount_stolen".to_string(),
-                    value: usd_amount_stolen,
-                },
-                Attribute {
-                    key: "platform_category".to_string(),
-                    value: platform_category,
-                },
-                Attribute {
-                    key: "type_of_attack".to_string(),
-                    value: type_of_attack,
+                    key: "scam_details".to_string(),
+                    value: scam_details,
                 },
             ],
         };
@@ -124,7 +103,7 @@ impl<'info> MintStandardNft<'info> {
         AddPluginV1CpiBuilder::new(&self.mpl_core_program.to_account_info())
             .asset(&self.rugged_nft_mint.to_account_info())
             .authority(Some(&self.update_authority_pda.to_account_info()))
-            .collection(Some(&self.standard_collection))
+            .collection(Some(&self.scammed_collection))
             .payer(&self.user.to_account_info())
             .system_program(&self.system_program.to_account_info())
             .plugin(Plugin::Attributes(attributes))

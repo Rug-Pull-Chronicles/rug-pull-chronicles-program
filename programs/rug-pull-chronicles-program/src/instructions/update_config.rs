@@ -23,12 +23,12 @@ impl<'info> UpdateConfig<'info> {
         Ok(())
     }
 
-    pub fn update_rugged_collection(&mut self, collection_address: Pubkey) -> Result<()> {
+    pub fn update_scammed_collection(&mut self, collection_address: Pubkey) -> Result<()> {
         // Update the config with the rugged collection address
-        self.config.rugged_collection = collection_address;
+        self.config.scammed_collection = collection_address;
 
         msg!(
-            "Updated config with rugged collection: {}",
+            "Updated config with scammed collection: {}",
             collection_address
         );
         Ok(())
