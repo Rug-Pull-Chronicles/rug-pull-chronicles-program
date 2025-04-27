@@ -1,3 +1,4 @@
+use crate::state::config::Config;
 use anchor_lang::prelude::*;
 use mpl_core::instructions::CreateCollectionV1CpiBuilder;
 
@@ -19,6 +20,10 @@ pub struct CreateCollection<'info> {
     /// CHECK: This is the ID of the Metaplex Core program
     #[account(address = mpl_core::ID)]
     pub mpl_core_program: UncheckedAccount<'info>,
+
+    /// Config account to store the collection address
+    #[account(mut)]
+    pub config: Account<'info, Config>,
 }
 
 impl<'info> CreateCollection<'info> {
@@ -37,6 +42,10 @@ impl<'info> CreateCollection<'info> {
             .uri(args.uri)
             .invoke()?;
 
+        msg!("Collection created successfully: {}", self.collection.key());
+
+        // Return success, we'll add a separate instruction to update the config
+        // since we can't easily modify it here
         Ok(())
     }
 }

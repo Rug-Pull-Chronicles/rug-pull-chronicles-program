@@ -147,6 +147,9 @@ describe("Rug Pull Chronicles Program", () => {
             expect(configAccount.treasury.toString()).to.equal(treasuryPDA.toString());
             expect(configAccount.antiscamTreasury.toString()).to.equal(antiScamTreasuryPDA.toString());
 
+            // The standard_collection should be default (all zeros) initially
+            expect(configAccount.standardCollection.toString()).to.equal(PublicKey.default.toString());
+
             // Verify the PDAs exist on-chain by checking their SOL balances
             const updateAuthBalance = await provider.connection.getBalance(updateAuthorityPDA);
             const treasuryBalance = await provider.connection.getBalance(treasuryPDA);
@@ -185,6 +188,7 @@ describe("Rug Pull Chronicles Program", () => {
                     payer: provider.wallet.publicKey,
                     systemProgram: anchor.web3.SystemProgram.programId,
                     mplCoreProgram: new PublicKey("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"),
+                    config: configPDA,
                 } as any)
                 .signers([collectionKeypair])
                 .rpc();
@@ -224,6 +228,39 @@ describe("Rug Pull Chronicles Program", () => {
             console.log(`Collection created with address: ${collectionKeypair.publicKey.toString()}`);
         } catch (error) {
             console.error("Error creating collection:", error);
+            throw error;
+        }
+    });
+
+    it("Updates the config with the collection address", async () => {
+        try {
+            // Call the update_config_collection instruction
+            const tx = await program.methods
+                .updateConfigCollection(collectionKeypair.publicKey)
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: configPDA,
+                } as any)
+                .rpc();
+
+            console.log("Config update transaction signature:", tx);
+
+            // Wait for transaction confirmation
+            await provider.connection.confirmTransaction({
+                signature: tx,
+                lastValidBlockHeight: await provider.connection.getBlockHeight(),
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+            });
+
+            // Fetch the updated config account
+            const updatedConfig = await program.account.config.fetch(configPDA);
+
+            // Verify the config has the correct collection address
+            expect(updatedConfig.standardCollection.toString()).to.equal(collectionKeypair.publicKey.toString());
+
+            console.log("Config updated successfully with collection:", updatedConfig.standardCollection.toString());
+        } catch (error) {
+            console.error("Error updating config:", error);
             throw error;
         }
     });

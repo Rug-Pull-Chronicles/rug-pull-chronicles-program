@@ -7,7 +7,7 @@
 //     #[account(mut)]
 //     pub user: Signer<'info>,
 //     #[account(init, payer = user,
-//       seeds = [STANDARD_NFT_SEED, user.key().as_ref()],
+//       seeds = [b"standard_nft", user.key().as_ref()],
 //       bump,
 //       space = 8 + std::mem::size_of::<StandardNft>() + 64
 //     )]
