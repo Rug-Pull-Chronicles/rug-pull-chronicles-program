@@ -4,12 +4,29 @@ import { RugPullChroniclesProgram } from "../target/types/rug_pull_chronicles_pr
 import { expect } from "chai";
 import { PublicKey, Keypair } from "@solana/web3.js";
 import wallet from "../Turbin3-wallet.json";
+import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
+import { createPluginV2, createV1, fetchAssetV1, mplCore, pluginAuthority, MPL_CORE_PROGRAM_ID, createCollection } from "@metaplex-foundation/mpl-core";
+import { base58, createSignerFromKeypair, generateSigner, signerIdentity, sol } from "@metaplex-foundation/umi";
+import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
+import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
+
+const umi = createUmi("http://127.0.0.1:8899").use(mplCore());
+
+let walletKeypair = umi.eddsa.createKeypairFromSecretKey(new Uint8Array(wallet));
+const signer = createSignerFromKeypair(umi, walletKeypair);
+umi.use(signerIdentity(signer));
+
+// Generate a new random KeypairSigner using the Eddsa interface
+const collectionSigner = generateSigner(umi);
 
 describe("Rug Pull Chronicles Program", () => {
     // Create a keypair from the imported wallet
-    const walletKeypair = Keypair.fromSecretKey(
-        Uint8Array.from(wallet)
-    );
+    // const walletKeypair = Keypair.fromSecretKey(
+    //     Uint8Array.from(wallet)
+    // );
+
+    // Create a Solana web3.js keypair for Anchor
+    const walletKeypair = Keypair.fromSecretKey(new Uint8Array(wallet));
 
     // Configure the client with our custom wallet
     const provider = new anchor.AnchorProvider(
@@ -103,7 +120,7 @@ describe("Rug Pull Chronicles Program", () => {
                     antiScamTreasuryPda: antiScamTreasuryPDA,
                     mplCoreProgram: new PublicKey("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"),
                     systemProgram: anchor.web3.SystemProgram.programId,
-                })
+                } as any)
                 .rpc();
 
             console.log("Transaction signature", tx);
