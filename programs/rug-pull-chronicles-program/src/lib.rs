@@ -6,6 +6,7 @@ pub mod state;
 
 use instructions::create_collection::*;
 use instructions::initialize::*;
+use instructions::update_collection::*;
 use instructions::update_config::*;
 
 declare_id!("6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9");
@@ -36,6 +37,15 @@ pub mod rug_pull_chronicles_program {
         collection_address: Pubkey,
     ) -> Result<()> {
         ctx.accounts.update_collection(collection_address)
+    }
+
+    pub fn update_collection_metadata(
+        ctx: Context<UpdateCollection>,
+        name: Option<String>,
+        uri: Option<String>,
+    ) -> Result<()> {
+        let args = UpdateCollectionArgs { name, uri };
+        ctx.accounts.update_collection_metadata(args)
     }
 
     // pub fn mint_standard_nft(ctx: Context<MintStandardNft>) -> Result<()> {
