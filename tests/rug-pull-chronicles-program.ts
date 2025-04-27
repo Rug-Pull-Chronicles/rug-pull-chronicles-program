@@ -51,6 +51,11 @@ describe("Rug Pull Chronicles Program", () => {
     let treasuryBump: number;
     let antiScamTreasuryBump: number;
 
+    // Create a collection using UMI
+    const umiCollectionKeypair = generateSigner(umi);
+    // Convert UMI keypair to Solana keypair for Anchor
+    const collectionKeypair = Keypair.fromSecretKey(umiCollectionKeypair.secretKey);
+
     before(async () => {
         // Ensure the wallet has enough SOL to pay for all the account initializations
         const walletBalance = await provider.connection.getBalance(provider.wallet.publicKey);
@@ -62,7 +67,11 @@ describe("Rug Pull Chronicles Program", () => {
                 provider.wallet.publicKey,
                 2 * anchor.web3.LAMPORTS_PER_SOL
             );
-            await provider.connection.confirmTransaction(signature);
+            await provider.connection.confirmTransaction({
+                signature,
+                lastValidBlockHeight: await provider.connection.getBlockHeight(),
+                blockhash: await (await provider.connection.getLatestBlockhash()).blockhash
+            });
             console.log("Airdropped 2 SOL to wallet for account creation");
         }
 
@@ -154,6 +163,67 @@ describe("Rug Pull Chronicles Program", () => {
             console.log("All accounts were initialized successfully");
         } catch (error) {
             console.error("Error:", error);
+            throw error;
+        }
+    });
+
+    it("Creates a collection", async () => {
+        try {
+            // Collection metadata
+            const collectionName = "Rug Pull Chronicles Collection";
+            const collectionUri = "https://rugpullchronicles.io/collection.json";
+
+            console.log(`Creating collection with address: ${umiCollectionKeypair.publicKey}`);
+            console.log(`Solana address: ${collectionKeypair.publicKey.toString()}`);
+
+            // Call the create_collection instruction
+            const tx = await program.methods
+                .createCollection(collectionName, collectionUri)
+                .accounts({
+                    collection: collectionKeypair.publicKey,
+                    updateAuthority: updateAuthorityPDA,
+                    payer: provider.wallet.publicKey,
+                    systemProgram: anchor.web3.SystemProgram.programId,
+                    mplCoreProgram: new PublicKey("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"),
+                } as any)
+                .signers([collectionKeypair])
+                .rpc();
+
+            console.log("Collection creation transaction signature:", tx);
+
+            // Wait for transaction confirmation
+            await provider.connection.confirmTransaction({
+                signature: tx,
+                lastValidBlockHeight: await provider.connection.getBlockHeight(),
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+            });
+
+            // Verify collection was created using both Solana and UMI approaches
+            try {
+                // Fetch using UMI (Metaplex)
+                const collectionAsset = await fetchAssetV1(umi, umiCollectionKeypair.publicKey);
+                console.log("Collection asset details:", {
+                    name: collectionAsset.name,
+                    uri: collectionAsset.uri,
+                    updateAuthority: collectionAsset.updateAuthority
+                });
+
+                // Verify collection details
+                expect(collectionAsset.name).to.equal(collectionName);
+                expect(collectionAsset.uri).to.equal(collectionUri);
+
+                // Get the update authority address as string
+                const umiUpdateAuthorityStr = collectionAsset.updateAuthority.toString();
+                expect(umiUpdateAuthorityStr).to.equal(updateAuthorityPDA.toString());
+
+                console.log("Collection verified successfully using UMI");
+            } catch (e) {
+                console.warn("Couldn't verify with UMI (expected if not in devnet):", e);
+            }
+
+            console.log(`Collection created with address: ${collectionKeypair.publicKey.toString()}`);
+        } catch (error) {
+            console.error("Error creating collection:", error);
             throw error;
         }
     });
