@@ -1,173 +1,145 @@
-// import * as anchor from "@coral-xyz/anchor";
-// import { Program } from "@coral-xyz/anchor";
-// import { RugPullChroniclesProgram } from "../target/types/rug_pull_chronicles_program";
-// import { Keypair, PublicKey } from "@solana/web3.js";
-// import { assert } from "chai";
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { RugPullChroniclesProgram } from "../target/types/rug_pull_chronicles_program";
+import { expect } from "chai";
+import { PublicKey, Keypair } from "@solana/web3.js";
+import wallet from "../Turbin3-wallet.json";
 
-// // Import Umi dependencies
-// import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-// import {
-//     mplCore,
-//     createCollection,
-//     fetchAssetV1,
-//     MPL_CORE_PROGRAM_ID
-// } from "@metaplex-foundation/mpl-core";
-// import {
-//     generateSigner,
-//     publicKey,
-//     sol,
-//     keypairIdentity,
-//     signerIdentity,
-//     createSignerFromKeypair
-// } from "@metaplex-foundation/umi";
-// import wallet from "../Turbin3-wallet.json"
-// import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
-// // import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
+describe("Rug Pull Chronicles Program", () => {
+    // Create a keypair from the imported wallet
+    const walletKeypair = Keypair.fromSecretKey(
+        Uint8Array.from(wallet)
+    );
 
-// const umi = createUmi("http://127.0.0.1:8899").use(mplCore());
+    // Configure the client with our custom wallet
+    const provider = new anchor.AnchorProvider(
+        anchor.AnchorProvider.env().connection,
+        new anchor.Wallet(walletKeypair),
+        { commitment: "confirmed" }
+    );
+    anchor.setProvider(provider);
 
-// let keypair = umi.eddsa.createKeypairFromSecretKey(new Uint8Array(wallet));
-// const signer = createSignerFromKeypair(umi, keypair);
-// umi.use(signerIdentity(signer));
+    const program = anchor.workspace.RugPullChroniclesProgram as Program<RugPullChroniclesProgram>;
 
-// // Separate signers for each collection
-// const ruggedCollectionSigner = generateSigner(umi);
-// const standardCollectionSigner = generateSigner(umi);
-// const assetSigner = generateSigner(umi);
+    // Generate seed for config PDA
+    const seed = new anchor.BN(Math.floor(Math.random() * 1000000));
 
+    // Store these for later validation
+    let configPDA: PublicKey;
+    let updateAuthorityPDA: PublicKey;
+    let treasuryPDA: PublicKey;
+    let antiScamTreasuryPDA: PublicKey;
+    let configBump: number;
+    let updateAuthorityBump: number;
+    let treasuryBump: number;
+    let antiScamTreasuryBump: number;
 
-// // Seed constants
-// const CONFIG_SEED = Buffer.from("config");
-// const UPDATE_AUTH_SEED = Buffer.from("upd_auth");
-// const TREASURY_SEED = Buffer.from("treasury");
-// const ANTISCAM_SEED = Buffer.from("antiscam");
+    before(async () => {
+        // Ensure the wallet has enough SOL to pay for all the account initializations
+        const walletBalance = await provider.connection.getBalance(provider.wallet.publicKey);
+        console.log("Using wallet:", provider.wallet.publicKey.toString());
 
-// describe("Rug Pull Chronicles Program", () => {
-//     // Configure the client to use the local cluster.
-//     const provider = anchor.AnchorProvider.env();
-//     anchor.setProvider(provider);
+        if (walletBalance < 2 * anchor.web3.LAMPORTS_PER_SOL) {
+            // Request airdrop if balance is low
+            const signature = await provider.connection.requestAirdrop(
+                provider.wallet.publicKey,
+                2 * anchor.web3.LAMPORTS_PER_SOL
+            );
+            await provider.connection.confirmTransaction(signature);
+            console.log("Airdropped 2 SOL to wallet for account creation");
+        }
 
-//     const program = anchor.workspace.RugPullChroniclesProgram as Program<RugPullChroniclesProgram>;
-//     const programId = program.programId;
+        // Find all PDAs we'll need
+        const [configAddress, configBumpSeed] = await PublicKey.findProgramAddressSync(
+            [Buffer.from("config"), seed.toArrayLike(Buffer, 'le', 8)],
+            program.programId
+        );
+        configPDA = configAddress;
+        configBump = configBumpSeed;
 
-//     console.log("Program ID:", programId);
+        const [updateAuthAddress, updateAuthBumpSeed] = await PublicKey.findProgramAddressSync(
+            [Buffer.from("upd_auth")],
+            program.programId
+        );
+        updateAuthorityPDA = updateAuthAddress;
+        updateAuthorityBump = updateAuthBumpSeed;
 
-//     before(async () => {
-//         // Request airdrop to ensure we have enough SOL
-//         try {
-//             console.log("Requesting airdrop...");
-//             let airdrop1 = await umi.rpc.airdrop(umi.identity.publicKey, sol(2));
-//             console.log("Airdrop successful:");
-//             console.log(airdrop1);
-//         } catch (error) {
-//             console.log("Airdrop failed, but continuing (might already have funds):", error.message);
-//         }
-//     });
+        const [treasuryAddress, treasuryBumpSeed] = await PublicKey.findProgramAddressSync(
+            [Buffer.from("treasury")],
+            program.programId
+        );
+        treasuryPDA = treasuryAddress;
+        treasuryBump = treasuryBumpSeed;
 
-//     it("Creates collection NFTs", async () => {
-//         console.log("Creating Rugged Collection...");
+        const [antiScamAddress, antiScamBumpSeed] = await PublicKey.findProgramAddressSync(
+            [Buffer.from("treasury_anti_scam")],
+            program.programId
+        );
+        antiScamTreasuryPDA = antiScamAddress;
+        antiScamTreasuryBump = antiScamBumpSeed;
+    });
 
-//         // Create the Rugged Collection
-//         await createCollection(umi, {
-//             collection: ruggedCollectionSigner,
-//             name: 'Rugged Collection',
-//             uri: 'https://ruggedcollection.io/metadata.json',
-//         }).sendAndConfirm(umi);
+    it("Initializes all accounts correctly", async () => {
+        try {
+            // Log initial balances for debugging
+            console.log("Admin wallet initial balance:", await provider.connection.getBalance(provider.wallet.publicKey) / anchor.web3.LAMPORTS_PER_SOL, "SOL");
 
-//         console.log("Rugged Collection created");
+            // Call the initialize instruction
+            const tx = await program.methods
+                .initialize(
+                    seed,
+                    {
+                        config: configBump,
+                        updateAuthorityPda: updateAuthorityBump,
+                        treasuryPda: treasuryBump,
+                        antiScamTreasuryPda: antiScamTreasuryBump,
+                    }
+                )
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: configPDA,
+                    updateAuthorityPda: updateAuthorityPDA,
+                    treasuryPda: treasuryPDA,
+                    antiScamTreasuryPda: antiScamTreasuryPDA,
+                    mplCoreProgram: new PublicKey("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"),
+                    systemProgram: anchor.web3.SystemProgram.programId,
+                })
+                .rpc();
 
-//         // Create the Standard Collection
-//         console.log("Creating Standard Collection...");
-//         await createCollection(umi, {
-//             collection: standardCollectionSigner,
-//             name: 'Standard Collection',
-//             uri: 'https://standardcollection.io/metadata.json',
-//         }).sendAndConfirm(umi);
+            console.log("Transaction signature", tx);
 
-//         console.log("Standard Collection created");
+            // Fetch the created config account
+            const configAccount = await program.account.config.fetch(configPDA);
 
-//         // Verify collections were created correctly
-//         const ruggedCollectionAsset = await fetchAssetV1(umi, ruggedCollectionSigner.publicKey);
-//         const standardCollectionAsset = await fetchAssetV1(umi, standardCollectionSigner.publicKey);
+            // Verify the config account data
+            expect(configAccount.seed.toString()).to.equal(seed.toString());
+            expect(configAccount.updateAuthorityBump).to.equal(updateAuthorityBump);
+            expect(configAccount.treasuryBump).to.equal(treasuryBump);
+            expect(configAccount.antiscamTreasuryBump).to.equal(antiScamTreasuryBump);
+            expect(configAccount.configBump).to.equal(configBump);
+            expect(configAccount.updateAuthority.toString()).to.equal(updateAuthorityPDA.toString());
+            expect(configAccount.treasury.toString()).to.equal(treasuryPDA.toString());
+            expect(configAccount.antiscamTreasury.toString()).to.equal(antiScamTreasuryPDA.toString());
 
-//         console.log("Rugged Collection Asset:", ruggedCollectionAsset.name);
-//         console.log("Standard Collection Asset:", standardCollectionAsset.name);
+            // Verify the PDAs exist on-chain by checking their SOL balances
+            const updateAuthBalance = await provider.connection.getBalance(updateAuthorityPDA);
+            const treasuryBalance = await provider.connection.getBalance(treasuryPDA);
+            const antiScamTreasuryBalance = await provider.connection.getBalance(antiScamTreasuryPDA);
 
-//         assert.equal(ruggedCollectionAsset.name, "Rugged Collection", "Rugged collection name mismatch");
-//         assert.equal(standardCollectionAsset.name, "Standard Collection", "Standard collection name mismatch");
-//     });
+            console.log("Update Authority PDA balance:", updateAuthBalance / anchor.web3.LAMPORTS_PER_SOL, "SOL");
+            console.log("Treasury PDA balance:", treasuryBalance / anchor.web3.LAMPORTS_PER_SOL, "SOL");
+            console.log("Anti-Scam Treasury PDA balance:", antiScamTreasuryBalance / anchor.web3.LAMPORTS_PER_SOL, "SOL");
 
-//     it("Initializes the program with collections", async () => {
-//         console.log("Initializing program with collections...");
+            expect(updateAuthBalance).to.be.greaterThan(0, "Update authority PDA should have a balance");
+            expect(treasuryBalance).to.be.greaterThan(0, "Treasury PDA should have a balance");
+            expect(antiScamTreasuryBalance).to.be.greaterThan(0, "Anti-scam treasury PDA should have a balance");
 
-//         // Calculate PDAs inside the test case
-//         const [configPDA] = PublicKey.findProgramAddressSync(
-//             [CONFIG_SEED],
-//             programId
-//         );
+            console.log("All accounts were initialized successfully");
+        } catch (error) {
+            console.error("Error:", error);
+            throw error;
+        }
+    });
 
-//         const [updateAuthorityPDA] = PublicKey.findProgramAddressSync(
-//             [UPDATE_AUTH_SEED],
-//             programId
-//         );
-
-//         const [treasuryPDA] = PublicKey.findProgramAddressSync(
-//             [TREASURY_SEED],
-//             programId
-//         );
-
-//         const [antiScamTreasuryPDA] = PublicKey.findProgramAddressSync(
-//             [TREASURY_SEED, ANTISCAM_SEED],
-//             programId
-//         );
-
-//         try {
-//             // Call the initialize instruction
-//             const tx = await program.methods
-//                 .initialize()
-//                 .accounts({
-//                     payer: provider.wallet.publicKey,
-//                     config: configPDA,
-//                     updateAuthorityPda: updateAuthorityPDA,
-//                     treasuryPda: treasuryPDA,
-//                     antiScamTreasuryPda: antiScamTreasuryPDA,
-//                     ruggedCollectionMint: ruggedCollectionSigner.publicKey,
-//                     standardCollectionMint: standardCollectionSigner.publicKey,
-//                     mplCoreProgram: MPL_CORE_PROGRAM_ID,
-//                     systemProgram: SYSTEM_PROGRAM_ID,
-//                 })
-//                 .rpc();
-
-//             console.log("Initialization transaction signature:", tx);
-
-//             // Fetch and verify config
-//             const configAccount = await program.account.config.fetchNullable(configPDA);
-//             if (!configAccount) {
-//                 throw new Error("Config account not found");
-//             }
-
-//             console.log("Program initialized successfully!");
-//             console.log("Configuration:");
-//             console.log("- Update Authority:", configAccount.updateAuthority.toBase58());
-//             console.log("- Rugged Collection:", configAccount.ruggedCollection.toBase58());
-//             console.log("- Standard Collection:", configAccount.standardCollection.toBase58());
-
-//             // Verify config matches expected values
-//             assert.equal(
-//                 configAccount.ruggedCollection.toBase58(),
-//                 ruggedCollectionSigner.publicKey.toString(),
-//                 "Rugged collection mismatch"
-//             );
-
-//             assert.equal(
-//                 configAccount.standardCollection.toBase58(),
-//                 standardCollectionSigner.publicKey.toString(),
-//                 "Standard collection mismatch"
-//             );
-
-//         } catch (error) {
-//             console.error("Error initializing program:", error);
-//             throw error;
-//         }
-//     });
-// });
+    // Add more tests for other functionality here
+});

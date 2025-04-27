@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-rug_pull_chronicles_program = "AisPtd8Pkci6V6x38MeZHBd5i7riJU8jCuHKtLLThCNM"
+rug_pull_chronicles_program = "6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9"
 
 [registry]
 url = "https://api.apr.dev"

@@ -6,7 +6,7 @@ pub mod state;
 
 use instructions::initialize::*;
 
-declare_id!("AisPtd8Pkci6V6x38MeZHBd5i7riJU8jCuHKtLLThCNM");
+declare_id!("6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9");
 
 #[program]
 pub mod rug_pull_chronicles_program {
