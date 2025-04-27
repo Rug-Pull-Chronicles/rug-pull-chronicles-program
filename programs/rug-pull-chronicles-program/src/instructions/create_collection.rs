@@ -1,6 +1,6 @@
 use crate::state::config::Config;
 use anchor_lang::prelude::*;
-use mpl_core::instructions::CreateCollectionV1CpiBuilder;
+use mpl_core::instructions::CreateCollectionV2CpiBuilder;
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct CreateCollectionArgs {
@@ -33,7 +33,7 @@ impl<'info> CreateCollection<'info> {
             None => None,
         };
 
-        CreateCollectionV1CpiBuilder::new(&self.mpl_core_program.to_account_info())
+        CreateCollectionV2CpiBuilder::new(&self.mpl_core_program.to_account_info())
             .collection(&self.collection.to_account_info())
             .payer(&self.payer.to_account_info())
             .update_authority(update_authority.as_ref())
