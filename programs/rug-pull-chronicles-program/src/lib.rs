@@ -9,6 +9,7 @@ use instructions::add_collection_plugin::*;
 use instructions::create_collection::*;
 use instructions::initialize::*;
 use instructions::mint_standard_nft::*;
+use instructions::mint_scammed_nft::*;
 use instructions::update_config::*;
 
 declare_id!("6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9");
@@ -41,6 +42,13 @@ pub mod rug_pull_chronicles_program {
         ctx.accounts.update_collection(collection_address)
     }
 
+    pub fn update_config_rugged_collection(
+        ctx: Context<UpdateConfig>,
+        collection_address: Pubkey,
+    ) -> Result<()> {
+        ctx.accounts.update_scammed_collection(collection_address)
+    }
+
     pub fn add_collection_royalties(
         ctx: Context<AddCollectionPlugin>,
         basis_points: u16,
@@ -69,6 +77,19 @@ pub mod rug_pull_chronicles_program {
             usd_amount_stolen,
             platform_category,
             type_of_attack,
+        )
+    }
+
+    pub fn mint_scammed_nft(
+        ctx: Context<MintScammedNft>,
+        name: String,
+        uri: String,
+        scam_details: String,
+    ) -> Result<()> {
+        ctx.accounts.mint_core_asset(
+            name,
+            uri,
+            scam_details,
         )
     }
 }

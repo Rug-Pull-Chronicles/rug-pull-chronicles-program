@@ -16,7 +16,21 @@ impl<'info> UpdateConfig<'info> {
         // Update the config with the collection address
         self.config.standard_collection = collection_address;
 
-        msg!("Updated config with collection: {}", collection_address);
+        msg!(
+            "Updated config with standard collection: {}",
+            collection_address
+        );
+        Ok(())
+    }
+
+    pub fn update_scammed_collection(&mut self, collection_address: Pubkey) -> Result<()> {
+        // Update the config with the rugged collection address
+        self.config.scammed_collection = collection_address;
+
+        msg!(
+            "Updated config with scammed collection: {}",
+            collection_address
+        );
         Ok(())
     }
 }
