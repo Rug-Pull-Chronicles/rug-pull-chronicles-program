@@ -1,6 +1,6 @@
 #![allow(unexpected_cfgs)]
 use crate::state::*;
-use crate::utils::fees::transfer_mint_fees;
+use crate::utils::fees::calculate_mint_fees;
 use anchor_lang::prelude::*;
 use mpl_core::{
     instructions::{AddPluginV1CpiBuilder, CreateV2CpiBuilder},
@@ -64,14 +64,34 @@ impl<'info> MintScammedNft<'info> {
         uri: String,
         scam_details: String,
     ) -> Result<()> {
-        // First, collect fees
-        transfer_mint_fees(
-            &self.config,
-            &self.user.to_account_info(),
-            &self.treasury.to_account_info(),
-            &self.antiscam_treasury.to_account_info(),
-            &self.system_program.to_account_info(),
+        // Calculate the fees first
+        let (treasury_amount, antiscam_amount) = calculate_mint_fees(&self.config);
+
+        // Transfer to main treasury
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                self.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: self.user.to_account_info(),
+                    to: self.treasury.to_account_info(),
+                },
+            ),
+            treasury_amount,
         )?;
+
+        // Transfer to anti-scam treasury
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                self.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: self.user.to_account_info(),
+                    to: self.antiscam_treasury.to_account_info(),
+                },
+            ),
+            antiscam_amount,
+        )?;
+
+        msg!("Fees paid successfully");
 
         // Get the account infos first
         let collection_account = &self.scammed_collection;
