@@ -345,6 +345,9 @@ describe("Rug Pull Chronicles Program", () => {
                     user: provider.wallet.publicKey,
                     ruggedNftMint: standardNftKeypair.publicKey,
                     standardCollection: collectionKeypair.publicKey,
+                    updateAuthorityPda: updateAuthorityPDA,
+                    treasury: treasuryPDA,
+                    antiscamTreasury: antiScamTreasuryPDA,
                     systemProgram: anchor.web3.SystemProgram.programId,
                     mplCoreProgram: new PublicKey("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"),
                     config: configPDA,
@@ -534,6 +537,8 @@ describe("Rug Pull Chronicles Program", () => {
                     ruggedNftMint: scammedNftKeypair.publicKey,
                     scammedCollection: scammedCollectionKeypair.publicKey,
                     updateAuthorityPda: updateAuthorityPDA,
+                    treasury: treasuryPDA,
+                    antiscamTreasury: antiScamTreasuryPDA,
                     systemProgram: anchor.web3.SystemProgram.programId,
                     mplCoreProgram: new PublicKey("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"),
                     config: configPDA,
@@ -605,6 +610,53 @@ describe("Rug Pull Chronicles Program", () => {
             }
         } catch (error) {
             console.error("Error minting scammed NFT:", error);
+            throw error;
+        }
+    });
+
+    it("Updates the fee settings", async () => {
+        try {
+            // New fee settings
+            const newMintFeeBasisPoints = 750; // 7.5%
+            const newTreasuryFeePercent = 70;  // 70% 
+            const newAntiScamFeePercent = 30;  // 30%
+
+            // Call the update_fee_settings instruction
+            const tx = await program.methods
+                .updateFeeSettings(
+                    newMintFeeBasisPoints,
+                    newTreasuryFeePercent,
+                    newAntiScamFeePercent
+                )
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: configPDA,
+                } as any)
+                .rpc();
+
+            console.log("Fee settings update transaction signature:", tx);
+
+            // Wait for transaction confirmation
+            await provider.connection.confirmTransaction({
+                signature: tx,
+                lastValidBlockHeight: await provider.connection.getBlockHeight(),
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+            });
+
+            // Fetch the updated config account
+            const updatedConfig = await program.account.config.fetch(configPDA);
+
+            // Verify the config has the correct fee settings
+            expect(updatedConfig.mint_fee_basis_points).to.equal(newMintFeeBasisPoints);
+            expect(updatedConfig.treasury_fee_percent).to.equal(newTreasuryFeePercent);
+            expect(updatedConfig.antiscam_fee_percent).to.equal(newAntiScamFeePercent);
+
+            console.log("Fee settings updated successfully:");
+            console.log(`Mint fee: ${newMintFeeBasisPoints / 100}%`);
+            console.log(`Treasury fee: ${newTreasuryFeePercent}%`);
+            console.log(`Anti-scam treasury fee: ${newAntiScamFeePercent}%`);
+        } catch (error) {
+            console.error("Error updating fee settings:", error);
             throw error;
         }
     });

@@ -1,5 +1,6 @@
 #![allow(unexpected_cfgs)]
 use crate::state::*;
+use crate::utils::fees::transfer_mint_fees;
 use anchor_lang::prelude::*;
 use mpl_core::{
     instructions::{AddPluginV1CpiBuilder, CreateV2CpiBuilder},
@@ -30,6 +31,22 @@ pub struct MintStandardNft<'info> {
     )]
     pub standard_collection: AccountInfo<'info>,
 
+    /// Treasury account for collecting platform fees
+    /// CHECK: This is verified against the config account
+    #[account(
+        mut,
+        constraint = treasury.key() == config.treasury
+    )]
+    pub treasury: UncheckedAccount<'info>,
+
+    /// Anti-scam treasury for collecting donation fees
+    /// CHECK: This is verified against the config account
+    #[account(
+        mut,
+        constraint = antiscam_treasury.key() == config.antiscam_treasury
+    )]
+    pub antiscam_treasury: UncheckedAccount<'info>,
+
     pub system_program: Program<'info, System>,
     /// CHECK: This is the ID of the Metaplex Core program
     #[account(address = mpl_core::ID)]
@@ -50,6 +67,15 @@ impl<'info> MintStandardNft<'info> {
         platform_category: String,
         type_of_attack: String,
     ) -> Result<()> {
+        // First, collect fees
+        transfer_mint_fees(
+            &self.config,
+            &self.user.to_account_info(),
+            &self.treasury.to_account_info(),
+            &self.antiscam_treasury.to_account_info(),
+            &self.system_program.to_account_info(),
+        )?;
+
         // Get the account infos first
         let collection_account = &self.standard_collection;
         let payer_account = &self.user.to_account_info();
