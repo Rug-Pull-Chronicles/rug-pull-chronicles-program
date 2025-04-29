@@ -1,5 +1,6 @@
 #![allow(unexpected_cfgs)]
 use crate::state::*;
+use crate::utils::fees::calculate_mint_fees;
 use anchor_lang::prelude::*;
 use mpl_core::{
     instructions::{AddPluginV1CpiBuilder, CreateV2CpiBuilder},
@@ -30,6 +31,22 @@ pub struct MintStandardNft<'info> {
     )]
     pub standard_collection: AccountInfo<'info>,
 
+    /// Treasury account for collecting platform fees
+    /// CHECK: This is verified against the config account
+    #[account(
+        mut,
+        constraint = treasury.key() == config.treasury
+    )]
+    pub treasury: UncheckedAccount<'info>,
+
+    /// Anti-scam treasury for collecting donation fees
+    /// CHECK: This is verified against the config account
+    #[account(
+        mut,
+        constraint = antiscam_treasury.key() == config.antiscam_treasury
+    )]
+    pub antiscam_treasury: UncheckedAccount<'info>,
+
     pub system_program: Program<'info, System>,
     /// CHECK: This is the ID of the Metaplex Core program
     #[account(address = mpl_core::ID)]
@@ -50,6 +67,35 @@ impl<'info> MintStandardNft<'info> {
         platform_category: String,
         type_of_attack: String,
     ) -> Result<()> {
+        // Calculate the fees first
+        let (treasury_amount, antiscam_amount) = calculate_mint_fees(&self.config);
+
+        // Transfer to main treasury
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                self.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: self.user.to_account_info(),
+                    to: self.treasury.to_account_info(),
+                },
+            ),
+            treasury_amount,
+        )?;
+
+        // Transfer to anti-scam treasury
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                self.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: self.user.to_account_info(),
+                    to: self.antiscam_treasury.to_account_info(),
+                },
+            ),
+            antiscam_amount,
+        )?;
+
+        msg!("Fees paid successfully");
+
         // Get the account infos first
         let collection_account = &self.standard_collection;
         let payer_account = &self.user.to_account_info();

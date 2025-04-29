@@ -4,12 +4,13 @@ pub mod constants;
 pub mod error;
 pub mod instructions;
 pub mod state;
+pub mod utils;
 
 use instructions::add_collection_plugin::*;
 use instructions::create_collection::*;
 use instructions::initialize::*;
-use instructions::mint_standard_nft::*;
 use instructions::mint_scammed_nft::*;
+use instructions::mint_standard_nft::*;
 use instructions::update_config::*;
 
 declare_id!("6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9");
@@ -49,6 +50,19 @@ pub mod rug_pull_chronicles_program {
         ctx.accounts.update_scammed_collection(collection_address)
     }
 
+    pub fn update_fee_settings(
+        ctx: Context<UpdateConfig>,
+        mint_fee_basis_points: u16,
+        treasury_fee_percent: u8,
+        antiscam_fee_percent: u8,
+    ) -> Result<()> {
+        ctx.accounts.update_fee_settings(
+            mint_fee_basis_points,
+            treasury_fee_percent,
+            antiscam_fee_percent,
+        )
+    }
+
     pub fn add_collection_royalties(
         ctx: Context<AddCollectionPlugin>,
         basis_points: u16,
@@ -86,10 +100,6 @@ pub mod rug_pull_chronicles_program {
         uri: String,
         scam_details: String,
     ) -> Result<()> {
-        ctx.accounts.mint_core_asset(
-            name,
-            uri,
-            scam_details,
-        )
+        ctx.accounts.mint_core_asset(name, uri, scam_details)
     }
 }

@@ -1,3 +1,4 @@
+use crate::error::CustomError;
 use crate::state::config::Config;
 use anchor_lang::prelude::*;
 
@@ -31,6 +32,31 @@ impl<'info> UpdateConfig<'info> {
             "Updated config with scammed collection: {}",
             collection_address
         );
+        Ok(())
+    }
+
+    pub fn update_fee_settings(
+        &mut self,
+        mint_fee_basis_points: u16,
+        treasury_fee_percent: u8,
+        antiscam_fee_percent: u8,
+    ) -> Result<()> {
+        // Validate the fee percentages add up to 100
+        require!(
+            treasury_fee_percent + antiscam_fee_percent == 100,
+            CustomError::InvalidFeeDistribution
+        );
+
+        // Update the fee settings
+        self.config.mint_fee_basis_points = mint_fee_basis_points;
+        self.config.treasury_fee_percent = treasury_fee_percent;
+        self.config.antiscam_fee_percent = antiscam_fee_percent;
+
+        msg!("Updated fee settings:");
+        msg!("Mint fee: {} basis points", mint_fee_basis_points);
+        msg!("Treasury fee: {}%", treasury_fee_percent);
+        msg!("Anti-scam treasury fee: {}%", antiscam_fee_percent);
+
         Ok(())
     }
 }

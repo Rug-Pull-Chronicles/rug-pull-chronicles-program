@@ -1,5 +1,6 @@
 #![allow(unexpected_cfgs)]
 use crate::state::*;
+use crate::utils::fees::calculate_mint_fees;
 use anchor_lang::prelude::*;
 use mpl_core::{
     instructions::{AddPluginV1CpiBuilder, CreateV2CpiBuilder},
@@ -30,6 +31,22 @@ pub struct MintScammedNft<'info> {
     )]
     pub scammed_collection: AccountInfo<'info>,
 
+    /// Treasury account for collecting platform fees
+    /// CHECK: This is verified against the config account
+    #[account(
+        mut,
+        constraint = treasury.key() == config.treasury
+    )]
+    pub treasury: UncheckedAccount<'info>,
+
+    /// Anti-scam treasury for collecting donation fees
+    /// CHECK: This is verified against the config account
+    #[account(
+        mut,
+        constraint = antiscam_treasury.key() == config.antiscam_treasury
+    )]
+    pub antiscam_treasury: UncheckedAccount<'info>,
+
     pub system_program: Program<'info, System>,
     /// CHECK: This is the ID of the Metaplex Core program
     #[account(address = mpl_core::ID)]
@@ -47,6 +64,35 @@ impl<'info> MintScammedNft<'info> {
         uri: String,
         scam_details: String,
     ) -> Result<()> {
+        // Calculate the fees first
+        let (treasury_amount, antiscam_amount) = calculate_mint_fees(&self.config);
+
+        // Transfer to main treasury
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                self.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: self.user.to_account_info(),
+                    to: self.treasury.to_account_info(),
+                },
+            ),
+            treasury_amount,
+        )?;
+
+        // Transfer to anti-scam treasury
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                self.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: self.user.to_account_info(),
+                    to: self.antiscam_treasury.to_account_info(),
+                },
+            ),
+            antiscam_amount,
+        )?;
+
+        msg!("Fees paid successfully");
+
         // Get the account infos first
         let collection_account = &self.scammed_collection;
         let payer_account = &self.user.to_account_info();
@@ -74,27 +120,18 @@ impl<'info> MintScammedNft<'info> {
             .invoke_signed(&[&[b"upd_auth", &[bump]]])?;
 
         // Add the scam attributes plugin
-        self.add_attributes_plugin(
-            scam_details,
-            bump,
-        )?;
+        self.add_attributes_plugin(scam_details, bump)?;
 
         Ok(())
     }
 
-    pub fn add_attributes_plugin(
-        &self,
-        scam_details: String,
-        bump: u8,
-    ) -> Result<()> {
+    pub fn add_attributes_plugin(&self, scam_details: String, bump: u8) -> Result<()> {
         // Create attributes list with the scam details
         let attributes = Attributes {
-            attribute_list: vec![
-                Attribute {
-                    key: "scam_details".to_string(),
-                    value: scam_details,
-                },
-            ],
+            attribute_list: vec![Attribute {
+                key: "scam_details".to_string(),
+                value: scam_details,
+            }],
         };
 
         // Add the plugin using CPI

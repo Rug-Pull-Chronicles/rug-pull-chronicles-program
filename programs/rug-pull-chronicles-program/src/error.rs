@@ -12,3 +12,9 @@ pub enum RuggedError {
     Unauthorized,
     // add more as needed...
 }
+
+#[error_code]
+pub enum CustomError {
+    #[msg("The provided fee distribution is invalid. Treasury and anti-scam fee percentages must sum to 100")]
+    InvalidFeeDistribution,
+}
