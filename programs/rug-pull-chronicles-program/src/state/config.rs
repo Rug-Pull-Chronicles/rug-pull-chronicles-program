@@ -4,8 +4,12 @@ use anchor_lang::prelude::*;
 ///   – update authority  
 ///   – fee treasuries  
 ///   – collection details
+///
+/// admin authority
 #[account]
 pub struct Config {
+    /// Admin authority that can update config and create collections
+    pub admin: Pubkey,
     /// Seed used to generate the config PDA
     pub seed: u64,
     /// bump seed for the `upd_auth` PDA
@@ -42,8 +46,8 @@ impl Space for Config {
     // 8   — Anchor discriminator
     // 8   — seed (u64)
     // 7   — seven bumps (u8 × 7)
-    // 5×32— five Pubkeys
+    // 6×32— six Pubkeys (5 original + admin)
     // 2   - mint_fee_basis_points (u16)
     // 2   - treasury_fee_percent and antiscam_fee_percent (u8 × 2)
-    const INIT_SPACE: usize = 8 + 8 + 7 + 5 * 32 + 2 + 2;
+    const INIT_SPACE: usize = 8 + 8 + 7 + 6 * 32 + 2 + 2;
 }

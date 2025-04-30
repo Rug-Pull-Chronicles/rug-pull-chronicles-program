@@ -72,6 +72,7 @@ impl<'info> Initialize<'info> {
         let antiscam_fee_percent = 40; // 40% to anti-scam treasury
 
         self.config.set_inner(Config {
+            admin: self.admin.key(),
             seed,
             update_authority_bump: bumps.update_authority_pda,
             treasury_bump: bumps.treasury_pda,

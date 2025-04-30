@@ -17,4 +17,7 @@ pub enum RuggedError {
 pub enum CustomError {
     #[msg("The provided fee distribution is invalid. Treasury and anti-scam fee percentages must sum to 100")]
     InvalidFeeDistribution,
+
+    #[msg("The provided fee amount is too high. Maximum allowed is 50%")]
+    InvalidFeeAmount,
 }

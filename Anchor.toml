@@ -14,7 +14,7 @@ rug_pull_chronicles_program = "6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "Turbin3-wallet.json"
 
 [scripts]
