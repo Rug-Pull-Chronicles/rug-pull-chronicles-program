@@ -1,37 +1,40 @@
-import * as anchor from '@coral-xyz/anchor';
-import { PublicKey, Connection, Keypair, SystemProgram } from '@solana/web3.js';
+import { Program, AnchorProvider, Idl, BN } from '@coral-xyz/anchor';
+import { Connection, SystemProgram } from '@solana/web3.js';
 import { WalletContextState } from '@solana/wallet-adapter-react';
-import { IDL } from './types/rug_pull_chronicles_program';
-import { BN } from 'bn.js';
+import rawIdl from '../../../target/idl/rug_pull_chronicles_program.json';
+import { PublicKey, Keypair } from '@solana/web3.js';
+import { RugPullChroniclesProgram } from '../../../target/types/rug_pull_chronicles_program';
+// import { PROGRAM_ID } from './constants';
+
 
 // Program ID 
-export const PROGRAM_ID = new PublicKey('6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9');
+const PROGRAM_ID = new PublicKey('6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9');
 
 // Metaplex Core Program ID
-export const MPL_CORE_PROGRAM_ID = new PublicKey('CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d');
+const MPL_CORE_PROGRAM_ID = new PublicKey('CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d');
 
-// Default seed for PDAs
-export const DEFAULT_SEED = new BN(9876);
+const DEFAULT_SEED = new BN(9876);
 
-// Get program instance with connected wallet
-export const getProgram = (wallet: WalletContextState, connection: Connection) => {
-    if (!wallet.publicKey) {
-        throw new Error('Wallet not connected');
-    }
 
-    // Create provider
-    const provider = new anchor.AnchorProvider(
-        connection,
-        wallet as any,
-        { commitment: 'confirmed' }
-    );
+export function getProgram(
+    wallet: WalletContextState,
+    connection: Connection
+): Program<RugPullChroniclesProgram> {
+    if (!wallet.publicKey) throw new Error('Wallet not connected');
 
-    // Create and return the program instance
-    // @ts-ignore - TypeScript has issues with the constructor parameters
-    return new anchor.Program(IDL, PROGRAM_ID, provider);
-};
+    const provider = new AnchorProvider(connection, wallet as any, {
+        commitment: 'confirmed',
+    });
 
-// Get PDAs for the program
+    return new Program(
+        rawIdl as Idl, // ✅ cast runtime JSON to Idl
+        provider
+    ) as Program<RugPullChroniclesProgram>; // ✅ cast result to typed Program
+}
+
+
+
+// Compute relevant PDAs
 export const getPDAs = async (seed = DEFAULT_SEED) => {
     const seedBuffer = seed.toArrayLike(Buffer, 'le', 8);
 
@@ -59,11 +62,11 @@ export const getPDAs = async (seed = DEFAULT_SEED) => {
         configPDA,
         updateAuthorityPDA,
         treasuryPDA,
-        antiScamTreasuryPDA
+        antiScamTreasuryPDA,
     };
 };
 
-// Function to mint a standard NFT
+// Mint an NFT in the Standard collection
 export const mintStandardNFT = async (
     wallet: WalletContextState,
     connection: Connection,
@@ -71,7 +74,7 @@ export const mintStandardNFT = async (
     nftName: string,
     nftUri: string,
     scamYear: string,
-    usdAmountStolen: string,
+    usdAmountStolen: string | number,
     platformCategory: string,
     typeOfAttack: string
 ) => {
@@ -79,23 +82,37 @@ export const mintStandardNFT = async (
         throw new Error('Wallet not connected');
     }
 
-    // Get program instance with connected wallet
     const program = getProgram(wallet, connection);
-
-    // Generate a new keypair for the NFT
     const nftKeypair = Keypair.generate();
 
-    // Get PDAs
-    const { configPDA, updateAuthorityPDA, treasuryPDA, antiScamTreasuryPDA } = await getPDAs();
+    const {
+        configPDA,
+        updateAuthorityPDA,
+        treasuryPDA,
+        antiScamTreasuryPDA,
+    } = await getPDAs();
+
+    // Convert to string instead of BN
+    const stolenAmountStr = usdAmountStolen.toString();
 
     try {
-        // Call the mint instruction
+        console.log('Minting with the following data:', {
+            nftName,
+            nftUri,
+            scamYear,
+            stolenAmount: stolenAmountStr,
+            platformCategory,
+            typeOfAttack,
+            configPDA: configPDA.toBase58(),
+            collectionAddress: collectionAddress.toBase58(),
+        });
+
         const tx = await program.methods
             .mintStandardNft(
                 nftName,
                 nftUri,
                 scamYear,
-                usdAmountStolen,
+                stolenAmountStr,
                 platformCategory,
                 typeOfAttack
             )
@@ -109,16 +126,16 @@ export const mintStandardNFT = async (
                 systemProgram: SystemProgram.programId,
                 mplCoreProgram: MPL_CORE_PROGRAM_ID,
                 config: configPDA,
-            })
+            } as any)
             .signers([nftKeypair])
             .rpc();
 
         return {
             signature: tx,
-            nftAddress: nftKeypair.publicKey.toString()
+            nftAddress: nftKeypair.publicKey.toBase58(),
         };
     } catch (error) {
         console.error('Error minting NFT:', error);
         throw error;
     }
-}; 
+};
