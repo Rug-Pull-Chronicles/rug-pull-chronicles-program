@@ -9,3 +9,4 @@ cargo.lock
 yarn.lock
 Turbin3-wallet.json
 /test-ledger
+.env
