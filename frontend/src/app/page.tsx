@@ -1,10 +1,11 @@
-import MintNFT from '@/components/MintNFT';
+import MintNFT from "@/components/MintNFT";
+import { SelectScam } from "./_components/SelectScam";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col p-6 lg:p-24">
       <div className="mt-8 flex-grow flex justify-center items-center">
-        <MintNFT />
+        <SelectScam />
       </div>
     </main>
   );

@@ -1,9 +1,9 @@
-import { ThemeProviderWrapper } from "@/providers/themeProvider";
 import { WalletAdapterProvider } from "@/providers/walletAdapterProvider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { UmiProvider } from "@/providers/umiProvider";
+import Header from "./_components/Header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,9 +21,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <WalletAdapterProvider>
-          <UmiProvider>
-            <ThemeProviderWrapper>{children}</ThemeProviderWrapper>
-          </UmiProvider>
+          <Header />
+          <UmiProvider>{children}</UmiProvider>
         </WalletAdapterProvider>
       </body>
     </html>

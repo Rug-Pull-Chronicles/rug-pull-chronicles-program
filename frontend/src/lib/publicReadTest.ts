@@ -1,5 +1,8 @@
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { fetchAllDigitalAssetByOwner } from "@metaplex-foundation/mpl-token-metadata";
+import {
+  fetchAllDigitalAssetByOwner,
+  mplTokenMetadata,
+} from "@metaplex-foundation/mpl-token-metadata";
 import { publicKey } from "@metaplex-foundation/umi";
 
 // @sturt tag nft channel discord; mp-nft-ai
@@ -8,7 +11,7 @@ import { publicKey } from "@metaplex-foundation/umi";
 export async function fetchWalletNFTs(walletAddress: string) {
   const umi = createUmi(
     `https://mainnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIUS_API}`
-  );
+  ).use(mplTokenMetadata());
 
   const ownerPublicKey = publicKey(walletAddress);
 
