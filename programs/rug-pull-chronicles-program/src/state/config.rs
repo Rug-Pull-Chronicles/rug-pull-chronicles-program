@@ -40,6 +40,16 @@ pub struct Config {
     pub treasury_fee_percent: u8,
     /// Percentage of fee that goes to anti-scam treasury (0-100)
     pub antiscam_fee_percent: u8,
+    /// Minimum payment required for minting (in lamports)
+    pub minimum_payment: u64,
+    /// Circuit breaker flag to pause all functionality in case of emergencies
+    pub paused: bool,
+    /// Total number of standard NFTs minted
+    pub total_minted_standard: u64,
+    /// Total number of scammed NFTs minted
+    pub total_minted_scammed: u64,
+    /// Program version for tracking upgrades
+    pub version: u16,
 }
 
 impl Space for Config {
@@ -49,5 +59,10 @@ impl Space for Config {
     // 6×32— six Pubkeys (5 original + admin)
     // 2   - mint_fee_basis_points (u16)
     // 2   - treasury_fee_percent and antiscam_fee_percent (u8 × 2)
-    const INIT_SPACE: usize = 8 + 8 + 7 + 6 * 32 + 2 + 2;
+    // 8   - minimum_payment (u64)
+    // 1   - paused (bool)
+    // 8   - total_minted_standard (u64)
+    // 8   - total_minted_scammed (u64)
+    // 2   - version (u16)
+    const INIT_SPACE: usize = 8 + 8 + 7 + 6 * 32 + 2 + 2 + 8 + 1 + 8 + 8 + 2;
 }

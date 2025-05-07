@@ -71,6 +71,9 @@ impl<'info> Initialize<'info> {
         let treasury_fee_percent = 60; // 60% to regular treasury
         let antiscam_fee_percent = 40; // 40% to anti-scam treasury
 
+        // Default minimum payment (0.01 SOL in lamports)
+        let minimum_payment = 10_000_000;
+
         self.config.set_inner(Config {
             admin: self.admin.key(),
             seed,
@@ -88,6 +91,11 @@ impl<'info> Initialize<'info> {
             mint_fee_basis_points,
             treasury_fee_percent,
             antiscam_fee_percent,
+            minimum_payment,          // New field
+            paused: false,            // Initialize as not paused
+            total_minted_standard: 0, // No NFTs minted yet
+            total_minted_scammed: 0,  // No NFTs minted yet
+            version: 1,               // Initial version
         });
 
         Ok(())

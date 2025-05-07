@@ -3,8 +3,8 @@ use anchor_lang::prelude::*;
 
 /// Calculates mint fees based on the config settings
 pub fn calculate_mint_fees(config: &Account<Config>) -> Result<(u64, u64)> {
-    // Calculate total fee amount based on basis points (1 SOL minimum payment)
-    let minimum_payment: u64 = 1_000_000_000; // 1 SOL in lamports
+    // Calculate total fee amount based on basis points (use config minimum payment)
+    let minimum_payment = config.minimum_payment;
     let fee_rate = config.mint_fee_basis_points as u64;
     let fee_amount = minimum_payment
         .checked_mul(fee_rate)

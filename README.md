@@ -3,43 +3,6 @@
 
 # Security enhancements
 
-I'll examine your codebase to identify potential security issues. Let me start by exploring the structure and key files.
-
-Read file: /Users/mattiapapa/Code/Turbin3/rug-pull-chronicles-program/programs/rug-pull-chronicles-program/src/lib.rs
-Let me look at the error module to understand the error handling:
-
-Read file: /Users/mattiapapa/Code/Turbin3/rug-pull-chronicles-program/programs/rug-pull-chronicles-program/src/error.rs
-Now let's look at constants:
-
-Read file: /Users/mattiapapa/Code/Turbin3/rug-pull-chronicles-program/programs/rug-pull-chronicles-program/src/constants.rs
-Let's explore the state directory to understand your data structures:
-
-Ran tool
-Let's check the config structure:
-
-Read file: /Users/mattiapapa/Code/Turbin3/rug-pull-chronicles-program/programs/rug-pull-chronicles-program/src/state/config.rs
-Now let's look at key instruction implementations:
-
-Ran tool
-Let's check update_config.rs:
-
-Read file: /Users/mattiapapa/Code/Turbin3/rug-pull-chronicles-program/programs/rug-pull-chronicles-program/src/instructions/update_config.rs
-Let's check the mint instructions:
-
-Read file: /Users/mattiapapa/Code/Turbin3/rug-pull-chronicles-program/programs/rug-pull-chronicles-program/src/instructions/mint_standard_nft.rs
-Let's also examine the initialize instruction:
-
-Read file: /Users/mattiapapa/Code/Turbin3/rug-pull-chronicles-program/programs/rug-pull-chronicles-program/src/instructions/initialize.rs
-Now I'll check the fee calculation utility:
-
-Ran tool
-
-Read file: /Users/mattiapapa/Code/Turbin3/rug-pull-chronicles-program/programs/rug-pull-chronicles-program/src/utils/fees.rs
-Let's look at the create_collection instruction:
-
-Read file: /Users/mattiapapa/Code/Turbin3/rug-pull-chronicles-program/programs/rug-pull-chronicles-program/src/instructions/create_collection.rs
-Based on the code review, here are the security issues I identified in your Rug Pull Chronicles program:
-
 ## Security Issues
 
 ### 1. Missing Access Controls in Update Config
@@ -327,3 +290,56 @@ proc-macro2 = "=1.0.94"
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Security Improvements
+
+The following security improvements have been implemented to enhance the security and reliability of the program:
+
+### 1. Duplicate NFT Prevention
+- Added a lightweight `MintTracker` PDA that acts as a flag to prevent duplicate NFT minting
+- Each mint operation creates a PDA with the mint address as a seed but stores minimal data (just a boolean flag)
+- This approach prevents duplicates while avoiding redundant data storage
+
+#### Why MintTracker is Necessary
+The MintTracker serves multiple critical functions:
+- **Explicit Validation**: Without it, there's no built-in mechanism in Solana or Metaplex that prevents trying to create multiple NFTs with the same mint address
+- **Transaction Atomicity**: Ensures all program operations (fee collection, counter updates) only occur if the NFT hasn't been previously minted
+- **Clean Error Handling**: Provides a clear, program-specific error instead of relying on Metaplex's initialization to fail
+- **State Consistency**: Prevents scenarios where program state (like minting counters) could be updated even if the underlying NFT creation fails
+
+Although Metaplex would eventually reject duplicate NFT creation attempts, this would happen after our program has already executed other operations, potentially leading to inconsistent state.
+
+### 2. Asset Tracking and Metadata
+- Added counters to the Config account to track total minted NFTs:
+  - `total_minted_standard`: Tracks the total number of standard NFTs minted
+  - `total_minted_scammed`: Tracks the total number of scammed NFTs minted
+- Comprehensive metadata about each NFT is stored directly in the NFT's attributes, including:
+  - All scam-specific details (year, amount, category, type)
+  - Minting metadata (minter address, timestamp)
+- This approach leverages the existing Metaplex NFT structure to store information efficiently
+
+### 3. Configurable Minimum Payment
+- The minimum payment value (previously hardcoded) is now configurable via the Config account
+- Added the `update_minimum_payment` instruction to allow admins to modify this value
+- Includes validation to ensure the minimum payment is not set too low (minimum 0.1 SOL)
+
+### 4. Circuit Breaker / Pause Functionality
+- Added a pause flag to the Config account that can be toggled by the admin
+- Added the `toggle_paused` instruction to turn the pause state on or off
+- All mint operations check the pause state before execution
+- This provides emergency shutdown capability in case of vulnerabilities
+
+### 5. Expanded Error Handling
+- Added more specific error types for better error handling and user feedback:
+  - `InvalidMinimumPayment`: Enforces minimum payment constraints
+  - `ProgramPaused`: Returned when attempting operations while paused
+  - `DuplicateNFTMint`: Used for duplicate NFT detection
+  - `ArithmeticOverflow`: More precise overflow error handling
+  - `OperationNotAllowedWhenPaused`: Clear indication that paused state prevents operations
+
+### 6. Program Versioning
+- Added a version field to the Config account to track program versions
+- This facilitates future upgrades and migrations
+- Initialized at version 1, with the ability to check and upgrade in the future
+
+These improvements significantly strengthen the security posture of the application by adding circuit breakers, preventing duplicate NFT minting, enhancing error handling, and making critical values configurable rather than hardcoded.

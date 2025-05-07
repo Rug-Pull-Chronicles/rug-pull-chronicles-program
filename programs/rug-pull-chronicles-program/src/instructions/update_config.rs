@@ -66,4 +66,36 @@ impl<'info> UpdateConfig<'info> {
 
         Ok(())
     }
+
+    pub fn update_minimum_payment(&mut self, minimum_payment: u64) -> Result<()> {
+        // Validate the minimum payment is not too low
+        require!(
+            minimum_payment >= 10_000_000, // Minimum 0.01 SOL
+            CustomError::InvalidMinimumPayment
+        );
+
+        // Update the minimum payment
+        self.config.minimum_payment = minimum_payment;
+
+        msg!("Updated minimum payment: {} lamports", minimum_payment);
+
+        Ok(())
+    }
+
+    pub fn toggle_paused(&mut self) -> Result<()> {
+        // Toggle the paused state
+        self.config.paused = !self.config.paused;
+
+        msg!(
+            "Program {} state: {}",
+            if self.config.paused {
+                "paused"
+            } else {
+                "unpaused"
+            },
+            self.config.paused
+        );
+
+        Ok(())
+    }
 }

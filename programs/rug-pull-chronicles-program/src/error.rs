@@ -10,6 +10,10 @@ pub enum RuggedError {
     InvalidTraits,
     #[msg("Unauthorized to perform this action.")]
     Unauthorized,
+    #[msg("Program is currently paused for maintenance or security reasons.")]
+    ProgramPaused,
+    #[msg("Operation failed due to a duplicate NFT mint attempt.")]
+    DuplicateNFTMint,
     // add more as needed...
 }
 
@@ -20,4 +24,13 @@ pub enum CustomError {
 
     #[msg("The provided fee amount is too high. Maximum allowed is 50%")]
     InvalidFeeAmount,
+
+    #[msg("The provided minimum payment is too low. Minimum allowed is 0.01 SOL")]
+    InvalidMinimumPayment,
+
+    #[msg("Arithmetic operation resulted in overflow")]
+    ArithmeticOverflow,
+
+    #[msg("The requested operation cannot be performed when the program is paused")]
+    OperationNotAllowedWhenPaused,
 }

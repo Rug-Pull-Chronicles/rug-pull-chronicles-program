@@ -13,7 +13,7 @@ use instructions::mint_scammed_nft::*;
 use instructions::mint_standard_nft::*;
 use instructions::update_config::*;
 
-declare_id!("6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9");
+declare_id!("EPBUpnJA1ybxzw8f4o1Fj8UXUtTPpcnGpqBq6gZfM7Y1");
 
 #[program]
 pub mod rug_pull_chronicles_program {
@@ -61,6 +61,14 @@ pub mod rug_pull_chronicles_program {
             treasury_fee_percent,
             antiscam_fee_percent,
         )
+    }
+
+    pub fn update_minimum_payment(ctx: Context<UpdateConfig>, minimum_payment: u64) -> Result<()> {
+        ctx.accounts.update_minimum_payment(minimum_payment)
+    }
+
+    pub fn toggle_paused(ctx: Context<UpdateConfig>) -> Result<()> {
+        ctx.accounts.toggle_paused()
     }
 
     pub fn add_collection_royalties(
