@@ -14,7 +14,7 @@ pub struct CreateCollection<'info> {
     pub collection: Signer<'info>,
     /// CHECK: this account will be checked by the mpl_core program
     pub update_authority: Option<UncheckedAccount<'info>>,
-    #[account(mut)]
+    #[account(mut, constraint = payer.key() == config.admin @ crate::error::RuggedError::Unauthorized)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
     /// CHECK: This is the ID of the Metaplex Core program

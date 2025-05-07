@@ -65,7 +65,7 @@ impl<'info> MintScammedNft<'info> {
         scam_details: String,
     ) -> Result<()> {
         // Calculate the fees first
-        let (treasury_amount, antiscam_amount) = calculate_mint_fees(&self.config);
+        let (treasury_amount, antiscam_amount) = calculate_mint_fees(&self.config)?;
 
         // Transfer to main treasury
         anchor_lang::system_program::transfer(

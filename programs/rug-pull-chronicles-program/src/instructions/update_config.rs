@@ -5,6 +5,7 @@ use anchor_lang::prelude::*;
 #[derive(Accounts)]
 pub struct UpdateConfig<'info> {
     /// The admin that can update the config
+    #[account(constraint = admin.key() == config.admin @ crate::error::RuggedError::Unauthorized)]
     pub admin: Signer<'info>,
 
     /// The config account to update
@@ -45,6 +46,12 @@ impl<'info> UpdateConfig<'info> {
         require!(
             treasury_fee_percent + antiscam_fee_percent == 100,
             CustomError::InvalidFeeDistribution
+        );
+
+        // Validate the mint fee is not too high
+        require!(
+            mint_fee_basis_points <= 5000, // Max 50%
+            CustomError::InvalidFeeAmount
         );
 
         // Update the fee settings

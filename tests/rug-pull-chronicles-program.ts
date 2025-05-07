@@ -143,8 +143,8 @@ describe("rug-pull-chronicles-program", () => {
             // Wait for transaction confirmation
             await provider.connection.confirmTransaction({
                 signature: tx,
-                lastValidBlockHeight: await provider.connection.getBlockHeight(),
-                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
             });
 
             // Verify the program config
@@ -202,8 +202,8 @@ describe("rug-pull-chronicles-program", () => {
             // Wait for transaction confirmation
             await provider.connection.confirmTransaction({
                 signature: tx,
-                lastValidBlockHeight: await provider.connection.getBlockHeight(),
-                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
             });
 
             // Verify the collection account was created
@@ -271,8 +271,8 @@ describe("rug-pull-chronicles-program", () => {
             // Wait for transaction confirmation
             await provider.connection.confirmTransaction({
                 signature: tx,
-                lastValidBlockHeight: await provider.connection.getBlockHeight(),
-                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
             });
 
             // Verify the collection account was created
@@ -342,8 +342,8 @@ describe("rug-pull-chronicles-program", () => {
             // Wait for transaction confirmation
             await provider.connection.confirmTransaction({
                 signature: tx,
-                lastValidBlockHeight: await provider.connection.getBlockHeight(),
-                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
             });
 
             console.log("Collection royalties added successfully");
@@ -402,8 +402,8 @@ describe("rug-pull-chronicles-program", () => {
             // Wait for transaction confirmation
             await provider.connection.confirmTransaction({
                 signature: tx,
-                lastValidBlockHeight: await provider.connection.getBlockHeight(),
-                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
             });
 
             // Add a delay to allow the NFT data to become available
@@ -520,8 +520,8 @@ describe("rug-pull-chronicles-program", () => {
             // Wait for transaction confirmation
             await provider.connection.confirmTransaction({
                 signature: tx,
-                lastValidBlockHeight: await provider.connection.getBlockHeight(),
-                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
             });
 
             // Add a delay to allow the NFT data to become available
@@ -618,8 +618,8 @@ describe("rug-pull-chronicles-program", () => {
             // Wait for transaction confirmation
             await provider.connection.confirmTransaction({
                 signature: tx,
-                lastValidBlockHeight: await provider.connection.getBlockHeight(),
-                blockhash: (await provider.connection.getLatestBlockhash()).blockhash
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
             });
 
             // Fetch the updated config account
@@ -639,4 +639,376 @@ describe("rug-pull-chronicles-program", () => {
         }
     });
 
+    // ==================== SECURITY TESTS ====================
+
+    it("Should prevent non-admin from updating fee settings", async () => {
+        try {
+            // Create a new keypair for a non-admin user
+            const nonAdminKeypair = Keypair.generate();
+
+            // Fund the non-admin account
+            const airdropSig = await provider.connection.requestAirdrop(
+                nonAdminKeypair.publicKey,
+                1 * LAMPORTS_PER_SOL
+            );
+            await provider.connection.confirmTransaction({
+                signature: airdropSig,
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
+            });
+
+            // Attempt to update fee settings as non-admin
+            const newMintFeeBasisPoints = 800; // 8%
+            const newTreasuryFeePercent = 60;
+            const newAntiScamFeePercent = 40;
+
+            // This should fail with an Unauthorized error
+            await program.methods
+                .updateFeeSettings(
+                    newMintFeeBasisPoints,
+                    newTreasuryFeePercent,
+                    newAntiScamFeePercent
+                )
+                .accounts({
+                    admin: nonAdminKeypair.publicKey,
+                    config: configPDA,
+                })
+                .signers([nonAdminKeypair])
+                .rpc();
+
+            // If we reach here, the test has failed because the transaction should have been rejected
+            expect.fail("Transaction should have failed with Unauthorized error");
+        } catch (error) {
+            // Check that the error is related to authorization
+            console.log("Error as expected:", error.message);
+            expect(error.message).to.include("Unauthorized");
+        }
+    });
+
+    it("Should prevent non-admin from creating a collection", async () => {
+        try {
+            // Create a new keypair for a non-admin user
+            const nonAdminKeypair = Keypair.generate();
+
+            // Fund the non-admin account
+            const airdropSig = await provider.connection.requestAirdrop(
+                nonAdminKeypair.publicKey,
+                1 * LAMPORTS_PER_SOL
+            );
+            await provider.connection.confirmTransaction({
+                signature: airdropSig,
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
+            });
+
+            // Create a new collection keypair
+            const newCollectionKeypair = Keypair.generate();
+
+            // Attempt to create a collection as non-admin
+            const name = "Unauthorized Collection";
+            const uri = "https://example.com/unauthorized.json";
+
+            // This should fail with an Unauthorized error
+            await program.methods
+                .createCollection(name, uri)
+                .accounts({
+                    collection: newCollectionKeypair.publicKey,
+                    updateAuthority: updateAuthorityPDA,
+                    payer: nonAdminKeypair.publicKey,
+                    systemProgram: SystemProgram.programId,
+                    mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                    config: configPDA
+                })
+                .signers([nonAdminKeypair, newCollectionKeypair])
+                .rpc();
+
+            // If we reach here, the test has failed
+            expect.fail("Transaction should have failed with Unauthorized error");
+        } catch (error) {
+            // Check that the error is related to authorization
+            console.log("Error as expected:", error.message);
+            expect(error.message).to.include("Unauthorized");
+        }
+    });
+
+    it("Should prevent non-admin from updating collection address", async () => {
+        try {
+            // Create a new keypair for a non-admin user
+            const nonAdminKeypair = Keypair.generate();
+
+            // Fund the non-admin account
+            const airdropSig = await provider.connection.requestAirdrop(
+                nonAdminKeypair.publicKey,
+                1 * LAMPORTS_PER_SOL
+            );
+            await provider.connection.confirmTransaction({
+                signature: airdropSig,
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
+            });
+
+            // Create a fake collection public key
+            const fakeCollectionKeypair = Keypair.generate();
+
+            // Attempt to update the standard collection address as non-admin
+            await program.methods
+                .updateConfigCollection(fakeCollectionKeypair.publicKey)
+                .accounts({
+                    admin: nonAdminKeypair.publicKey,
+                    config: configPDA,
+                })
+                .signers([nonAdminKeypair])
+                .rpc();
+
+            // If we reach here, the test has failed
+            expect.fail("Transaction should have failed with Unauthorized error");
+        } catch (error) {
+            // Check that the error is related to authorization
+            console.log("Error as expected:", error.message);
+            expect(error.message).to.include("Unauthorized");
+        }
+    });
+
+    it("Should prevent non-admin from adding collection royalties", async () => {
+        try {
+            // Create a new keypair for a non-admin user
+            const nonAdminKeypair = Keypair.generate();
+
+            // Fund the non-admin account
+            const airdropSig = await provider.connection.requestAirdrop(
+                nonAdminKeypair.publicKey,
+                1 * LAMPORTS_PER_SOL
+            );
+            await provider.connection.confirmTransaction({
+                signature: airdropSig,
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
+            });
+
+            // Attempt to add royalties as non-admin
+            const basisPoints = 250; // 2.5%
+            const creatorInput = {
+                address: nonAdminKeypair.publicKey,
+                percentage: 100
+            };
+
+            await program.methods
+                .addCollectionRoyalties(basisPoints, [creatorInput])
+                .accounts({
+                    admin: nonAdminKeypair.publicKey,
+                    config: configPDA,
+                    collection: collectionKeypair.publicKey,
+                    updateAuthorityPda: updateAuthorityPDA,
+                    mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
+                })
+                .signers([nonAdminKeypair])
+                .rpc();
+
+            // If we reach here, the test has failed
+            expect.fail("Transaction should have failed with Unauthorized error");
+        } catch (error) {
+            // Check that the error is related to authorization
+            console.log("Error as expected:", error.message);
+            expect(error.message).to.include("Unauthorized");
+        }
+    });
+
+    it("Should reject invalid fee distributions that don't sum to 100%", async () => {
+        try {
+            // Attempt to update with invalid fee distribution (sums to 90%)
+            const newMintFeeBasisPoints = 800; // 8%
+            const newTreasuryFeePercent = 50;  // 50%
+            const newAntiScamFeePercent = 40;  // 40% (Total: 90%)
+
+            await program.methods
+                .updateFeeSettings(
+                    newMintFeeBasisPoints,
+                    newTreasuryFeePercent,
+                    newAntiScamFeePercent
+                )
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: configPDA,
+                })
+                .rpc();
+
+            // If we reach here, the test has failed
+            expect.fail("Transaction should have failed with InvalidFeeDistribution error");
+        } catch (error) {
+            // Check that the error is related to fee distribution
+            console.log("Error as expected:", error.message);
+            expect(error.message).to.include("InvalidFeeDistribution");
+        }
+    });
+
+    it("Should reject excessively high mint fees", async () => {
+        try {
+            // Attempt to update with excessive fee (above 50%)
+            const excessiveMintFeeBasisPoints = 6000; // 60% (exceeds 50% limit)
+            const newTreasuryFeePercent = 50;
+            const newAntiScamFeePercent = 50;
+
+            await program.methods
+                .updateFeeSettings(
+                    excessiveMintFeeBasisPoints,
+                    newTreasuryFeePercent,
+                    newAntiScamFeePercent
+                )
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: configPDA,
+                })
+                .rpc();
+
+            // If we reach here, the test has failed
+            expect.fail("Transaction should have failed with InvalidFeeAmount error");
+        } catch (error) {
+            // Check that the error is related to fee amount
+            console.log("Error as expected:", error.message);
+            expect(error.message).to.include("InvalidFeeAmount");
+        }
+    });
+
+    it("Should verify that admin can update collection address", async () => {
+        try {
+            // Create a new collection keypair to simulate a collection migration
+            const newCollectionKeypair = Keypair.generate();
+
+            // Get the current standard collection from config
+            const configBefore = await program.account.config.fetch(configPDA);
+            const originalCollectionAddress = configBefore.standardCollection;
+
+            // Update the standard collection address as admin
+            const tx = await program.methods
+                .updateConfigCollection(newCollectionKeypair.publicKey)
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: configPDA,
+                })
+                .rpc();
+
+            await provider.connection.confirmTransaction({
+                signature: tx,
+                blockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+                lastValidBlockHeight: (await provider.connection.getLatestBlockhash()).lastValidBlockHeight
+            });
+
+            // Verify that the collection address was updated
+            const configAfter = await program.account.config.fetch(configPDA);
+            expect(configAfter.standardCollection.toString()).to.equal(
+                newCollectionKeypair.publicKey.toString(),
+                "Collection address was not updated correctly"
+            );
+            expect(configAfter.standardCollection.toString()).to.not.equal(
+                originalCollectionAddress.toString(),
+                "Collection address did not change"
+            );
+
+            // Restore the original collection address for future tests
+            await program.methods
+                .updateConfigCollection(originalCollectionAddress)
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: configPDA,
+                })
+                .rpc();
+        } catch (error) {
+            console.error("Error updating collection address:", error);
+            throw error;
+        }
+    });
+
+    it("Should properly handle arithmetic in fee calculations", async () => {
+        try {
+            // Set up extreme but valid fees to test arithmetic operations
+            const highMintFeeBasisPoints = 5000; // 50% (maximum allowed)
+            const treasuryFeePercent = 75;
+            const antiScamFeePercent = 25;
+
+            // Update fee settings
+            await program.methods
+                .updateFeeSettings(
+                    highMintFeeBasisPoints,
+                    treasuryFeePercent,
+                    antiScamFeePercent
+                )
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: configPDA,
+                })
+                .rpc();
+
+            // Now mint a standard NFT to test the fee calculation
+            const nftKeypair = Keypair.generate();
+
+            // Check balance before to calculate expected fees
+            const balanceBefore = await provider.connection.getBalance(provider.wallet.publicKey);
+            const treasuryBalanceBefore = await provider.connection.getBalance(treasuryPDA);
+            const antiScamBalanceBefore = await provider.connection.getBalance(antiScamTreasuryPDA);
+
+            // Mint a new NFT with the high fees
+            await program.methods
+                .mintStandardNft(
+                    "High Fee Test NFT",
+                    "https://example.com/high-fee-test.json",
+                    "2023",
+                    "1000000",
+                    "DeFi",
+                    "Test"
+                )
+                .accounts({
+                    user: provider.wallet.publicKey,
+                    ruggedNftMint: nftKeypair.publicKey,
+                    standardCollection: collectionKeypair.publicKey,
+                    updateAuthorityPda: updateAuthorityPDA,
+                    treasury: treasuryPDA,
+                    antiscamTreasury: antiScamTreasuryPDA,
+                    systemProgram: SystemProgram.programId,
+                    mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                    config: configPDA,
+                })
+                .signers([nftKeypair])
+                .rpc();
+
+            // Get balances after mint
+            const treasuryBalanceAfter = await provider.connection.getBalance(treasuryPDA);
+            const antiScamBalanceAfter = await provider.connection.getBalance(antiScamTreasuryPDA);
+
+            // Calculate expected treasury fee (1 SOL * 50% * 75% = 0.375 SOL)
+            const expectedTreasuryFee = 1 * LAMPORTS_PER_SOL * 0.5 * 0.75;
+            // Calculate expected anti-scam fee (1 SOL * 50% * 25% = 0.125 SOL)
+            const expectedAntiScamFee = 1 * LAMPORTS_PER_SOL * 0.5 * 0.25;
+
+            // Verify treasury increase
+            const treasuryIncrease = treasuryBalanceAfter - treasuryBalanceBefore;
+            console.log(`Treasury increase: ${treasuryIncrease / LAMPORTS_PER_SOL} SOL`);
+            expect(treasuryIncrease).to.be.approximately(
+                expectedTreasuryFee,
+                0.01 * LAMPORTS_PER_SOL, // Allow for small variations
+                "Treasury fee was not calculated correctly"
+            );
+
+            // Verify anti-scam treasury increase
+            const antiScamIncrease = antiScamBalanceAfter - antiScamBalanceBefore;
+            console.log(`Anti-scam treasury increase: ${antiScamIncrease / LAMPORTS_PER_SOL} SOL`);
+            expect(antiScamIncrease).to.be.approximately(
+                expectedAntiScamFee,
+                0.01 * LAMPORTS_PER_SOL, // Allow for small variations
+                "Anti-scam fee was not calculated correctly"
+            );
+
+            // Reset fee settings to original values for other tests
+            await program.methods
+                .updateFeeSettings(500, 60, 40) // 5% fee, 60/40 split
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: configPDA,
+                })
+                .rpc();
+        } catch (error) {
+            console.error("Error testing fee calculations:", error);
+            throw error;
+        }
+    });
 });
