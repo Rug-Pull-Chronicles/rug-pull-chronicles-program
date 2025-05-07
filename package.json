@@ -10,7 +10,7 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
     "@metaplex-foundation/mpl-core": "^1.2",
-    "@metaplex-foundation/mpl-token-metadata": "3.4.0",
+    "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
     "@metaplex-foundation/umi": "1.2.0",
     "@metaplex-foundation/umi-bundle-defaults": "1.2.0",
     "@solana/web3.js": "^1.95.8"
