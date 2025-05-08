@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { UmiProvider } from "@/providers/umiProvider";
+import { ConnectionProvider } from "@/providers/ConnectionProvider";
 import Header from "./_components/Header";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,8 +22,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <WalletAdapterProvider>
-          <Header />
-          <UmiProvider>{children}</UmiProvider>
+          <ConnectionProvider>
+            <Header />
+            <UmiProvider>{children}</UmiProvider>
+          </ConnectionProvider>
         </WalletAdapterProvider>
       </body>
     </html>

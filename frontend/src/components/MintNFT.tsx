@@ -1,23 +1,21 @@
 "use client";
 
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useState, useEffect } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useState } from "react";
 import { mintStandardNFT } from "@/lib/program";
-import { PublicKey, clusterApiUrl, Connection } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
+import { useCustomConnection } from "@/providers/ConnectionProvider";
 
-// Constants
-const LOCAL_ENDPOINT = "http://127.0.0.1:8899";
-const DEVNET_ENDPOINT = clusterApiUrl("devnet");
-const STANDARD_COLLECTION = "DSDXwuAh9KxpEaJxQTUJs7VXD1sfv2zF8op9pJJaNSce";
-const SCAMMED_COLLECTION = "Hv4sedKvWL1xEFqjDShUQ9GLRRiY1hRdVTgeemo4CHSN";
-const PROGRAM_ID = "6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9";
+const STANDARD_COLLECTION = process.env.NEXT_PUBLIC_STANDARD_COLLECTION;
+const SCAMMED_COLLECTION = process.env.NEXT_PUBLIC_SCAMMED_COLLECTION;
 
 interface MintNFTProps {
   year: number;
   amount: string;
   category: string;
   typeOfAttack: string;
+  title: string;
+  description: string;
 }
 
 export default function MintNFT({
@@ -25,9 +23,11 @@ export default function MintNFT({
   amount,
   category,
   typeOfAttack,
+  title,
+  description,
 }: MintNFTProps) {
-  const { connection } = useConnection();
   const wallet = useWallet();
+  const { connectionToUse } = useCustomConnection();
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -36,29 +36,10 @@ export default function MintNFT({
     signature: string;
     nftAddress: string;
   } | null>(null);
-  const [isLocalnet, setIsLocalnet] = useState(false);
-  const [isDevnet, setIsDevnet] = useState(false);
-  const [customConnection, setCustomConnection] = useState<Connection | null>(
-    null
-  );
 
-  const [nftName, setNftName] = useState("My Rug Pull Chronicles NFT");
   const [nftUri, setNftUri] = useState("https://example.com/metadata.json");
   const [collectionAddress, setCollectionAddress] =
     useState(STANDARD_COLLECTION);
-
-  // Create a connection to devnet by default
-  useEffect(() => {
-    setCustomConnection(new Connection(DEVNET_ENDPOINT, "confirmed"));
-  }, []);
-
-  // Check connection network
-  useEffect(() => {
-    if (connection?.rpcEndpoint) {
-      setIsLocalnet(connection.rpcEndpoint === LOCAL_ENDPOINT);
-      setIsDevnet(connection.rpcEndpoint.includes("devnet"));
-    }
-  }, [connection]);
 
   const handleMint = async () => {
     if (!wallet.publicKey) {
@@ -85,14 +66,12 @@ export default function MintNFT({
         throw new Error("Invalid collection address");
       }
 
-      // Use devnet connection if available, otherwise fallback to the current connection
-      const connectionToUse = customConnection || connection;
-
+      // Use the connection from our provider
       const result = await mintStandardNFT(
         wallet,
         connectionToUse,
         pubkey,
-        nftName,
+        title,
         nftUri,
         year.toString(),
         amount,
@@ -111,10 +90,6 @@ export default function MintNFT({
     }
   };
 
-  const connectToDevnet = () => {
-    setCustomConnection(new Connection(DEVNET_ENDPOINT, "confirmed"));
-  };
-
   return (
     <div className="bg-black/90 rounded-lg p-6 max-w-xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -122,44 +97,6 @@ export default function MintNFT({
           Mint Rug Pull Chronicles NFT
         </h2>
       </div>
-
-      {isDevnet ||
-      (customConnection && customConnection.rpcEndpoint.includes("devnet")) ? (
-        <div className="p-4 mb-6 bg-blue-900/50 border border-blue-700 rounded-md text-blue-200">
-          <p className="text-sm">
-            <strong>Connected to Devnet</strong> - Using the deployed program
-            for testing.
-          </p>
-          <p className="text-xs mt-1">Program ID: {PROGRAM_ID}</p>
-        </div>
-      ) : isLocalnet ? (
-        <div className="p-4 mb-6 bg-green-900/50 border border-green-700 rounded-md text-green-200">
-          <p className="text-sm">
-            <strong>Connected to localnet</strong> - Using the local validator
-            for testing.
-          </p>
-          <p className="text-xs mt-1">Program ID: {PROGRAM_ID}</p>
-          <button
-            onClick={connectToDevnet}
-            className="mt-2 px-3 py-1 bg-blue-700 text-white text-xs rounded hover:bg-blue-600"
-          >
-            Switch to Devnet
-          </button>
-        </div>
-      ) : (
-        <div className="p-4 mb-6 bg-yellow-900/50 border border-yellow-700 rounded-md text-yellow-200">
-          <p className="text-sm">
-            <strong>Note:</strong> Not connected to a known network. Using
-            Devnet by default.
-          </p>
-          <button
-            onClick={connectToDevnet}
-            className="mt-2 px-3 py-1 bg-blue-700 text-white text-xs rounded hover:bg-blue-600"
-          >
-            Connect to Devnet
-          </button>
-        </div>
-      )}
 
       <div className="space-y-4">
         <div>
@@ -189,30 +126,6 @@ export default function MintNFT({
               Scammed
             </button>
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
-            NFT Name
-          </label>
-          <input
-            type="text"
-            value={nftName}
-            onChange={(e) => setNftName(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
-            Metadata URI
-          </label>
-          <input
-            type="text"
-            value={nftUri}
-            onChange={(e) => setNftUri(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
         </div>
 
         <button

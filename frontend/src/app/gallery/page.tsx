@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { fetchWalletNFTs } from "@/lib/publicReadTest";
+import { fetchWalletNFTs } from "@/lib/blockchain/publicReadTest";
 
 interface NFT {
   name: string;
