@@ -80,6 +80,26 @@ impl<'info> MintScammedNft<'info> {
             crate::error::RuggedError::ProgramPaused
         );
 
+        // Check if we've reached the max supply limit for this collection
+        if self.config.scammed_collection_has_master_edition {
+            if let Some(max_supply) = self.config.scammed_collection_max_supply {
+                require!(
+                    self.config.total_minted_scammed < max_supply as u64,
+                    crate::error::RuggedError::MaxSupplyExceeded
+                );
+
+                // If we're close to hitting the max supply, log a warning
+                let remaining = max_supply as u64 - self.config.total_minted_scammed;
+                if remaining <= 5 {
+                    msg!(
+                        "WARNING: Only {} editions remaining out of max supply {}",
+                        remaining,
+                        max_supply
+                    );
+                }
+            }
+        }
+
         // Calculate the fees first
         let (treasury_amount, antiscam_amount) = calculate_mint_fees(&self.config)?;
 
