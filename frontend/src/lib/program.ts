@@ -139,3 +139,53 @@ export const mintStandardNFT = async (
         throw error;
     }
 };
+
+// Add a Master Edition plugin to a collection
+export const addMasterEditionPlugin = async (
+    wallet: WalletContextState,
+    connection: Connection,
+    collectionAddress: PublicKey,
+    maxSupply: number | null = null,
+    name: string | null = null,
+    uri: string | null = null
+) => {
+    if (!wallet.publicKey) {
+        throw new Error('Wallet not connected');
+    }
+
+    const program = getProgram(wallet, connection);
+    const { configPDA, updateAuthorityPDA } = await getPDAs();
+
+    try {
+        console.log('Adding Master Edition plugin with the following data:', {
+            collectionAddress: collectionAddress.toBase58(),
+            maxSupply,
+            name,
+            uri
+        });
+
+        const tx = await program.methods
+            .addMasterEditionPlugin(
+                maxSupply,
+                name,
+                uri
+            )
+            .accounts({
+                admin: wallet.publicKey,
+                config: configPDA,
+                collection: collectionAddress,
+                updateAuthorityPda: updateAuthorityPDA,
+                mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                systemProgram: SystemProgram.programId,
+            })
+            .rpc();
+
+        return {
+            signature: tx,
+            collectionAddress: collectionAddress.toBase58(),
+        };
+    } catch (error) {
+        console.error('Error adding Master Edition plugin:', error);
+        throw error;
+    }
+};

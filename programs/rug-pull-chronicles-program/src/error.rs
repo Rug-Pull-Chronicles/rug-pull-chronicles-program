@@ -14,6 +14,8 @@ pub enum RuggedError {
     ProgramPaused,
     #[msg("Operation failed due to a duplicate NFT mint attempt.")]
     DuplicateNFTMint,
+    #[msg("Maximum supply limit for this collection has been reached.")]
+    MaxSupplyExceeded,
     // add more as needed...
 }
 

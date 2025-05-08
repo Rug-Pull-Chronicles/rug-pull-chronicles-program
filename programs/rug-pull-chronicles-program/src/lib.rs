@@ -31,8 +31,17 @@ pub mod rug_pull_chronicles_program {
         ctx: Context<CreateCollection>,
         name: String,
         uri: String,
+        max_supply: Option<u32>,
+        edition_name: Option<String>,
+        edition_uri: Option<String>,
     ) -> Result<()> {
-        let args = CreateCollectionArgs { name, uri };
+        let args = CreateCollectionArgs {
+            name,
+            uri,
+            max_supply,
+            edition_name,
+            edition_uri,
+        };
         ctx.accounts.create_core_collection(args)
     }
 

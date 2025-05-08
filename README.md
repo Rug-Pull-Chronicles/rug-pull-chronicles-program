@@ -342,4 +342,18 @@ Although Metaplex would eventually reject duplicate NFT creation attempts, this 
 - This facilitates future upgrades and migrations
 - Initialized at version 1, with the ability to check and upgrade in the future
 
-These improvements significantly strengthen the security posture of the application by adding circuit breakers, preventing duplicate NFT minting, enhancing error handling, and making critical values configurable rather than hardcoded.
+### 7. Master Edition Support
+- Collections now support the Metaplex Master Edition plugin, allowing for limited edition NFTs
+- Integrated Master Edition parameters directly into the collection creation process
+  - `max_supply`: Optional parameter to set the maximum number of editions
+  - `edition_name`: Optional custom name for the Master Edition
+  - `edition_uri`: Optional custom URI for Master Edition metadata
+- Each collection tracks whether it has a Master Edition and its max supply in the Config account
+
+### 8. Improved Memory Safety with Rust Borrowing Rules
+- Refactored the collection creation process to properly handle Rust's borrowing rules
+- Implemented a step-by-step builder pattern that safely constructs complex instructions
+- Fixed temporary value lifetime issues that could cause compilation errors
+- Enhanced test suite to match the correct IDL structure
+
+These improvements significantly strengthen the security posture of the application by adding circuit breakers, preventing duplicate NFT minting, enhancing error handling, making critical values configurable rather than hardcoded, and ensuring collections can have limited edition capabilities.
