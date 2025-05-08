@@ -907,11 +907,21 @@ describe("rug-pull-chronicles-program", () => {
                 })
                 .rpc();
 
+            // Fetch the config to get the current minimum payment
+            const config = await program.account.config.fetch(configPDA);
+            const minimumPayment = config.minimumPayment;
+            console.log(`Current minimum payment: ${minimumPayment} lamports (${minimumPayment / LAMPORTS_PER_SOL} SOL)`);
+
             // Now mint a standard NFT to test the fee calculation
             const nftKeypair = Keypair.generate();
 
-            // Check balance before to calculate expected fees
-            const balanceBefore = await provider.connection.getBalance(provider.wallet.publicKey);
+            // Calculate mint tracker PDA
+            const [mintTrackerPDA] = await PublicKey.findProgramAddressSync(
+                [Buffer.from("mint_tracker"), nftKeypair.publicKey.toBuffer()],
+                program.programId
+            );
+
+            // Check balances before to calculate expected fees
             const treasuryBalanceBefore = await provider.connection.getBalance(treasuryPDA);
             const antiScamBalanceBefore = await provider.connection.getBalance(antiScamTreasuryPDA);
 
@@ -932,6 +942,7 @@ describe("rug-pull-chronicles-program", () => {
                     updateAuthorityPda: updateAuthorityPDA,
                     treasury: treasuryPDA,
                     antiscamTreasury: antiScamTreasuryPDA,
+                    mintTracker: mintTrackerPDA,
                     systemProgram: SystemProgram.programId,
                     mplCoreProgram: MPL_CORE_PROGRAM_ID,
                     config: configPDA,
@@ -943,26 +954,31 @@ describe("rug-pull-chronicles-program", () => {
             const treasuryBalanceAfter = await provider.connection.getBalance(treasuryPDA);
             const antiScamBalanceAfter = await provider.connection.getBalance(antiScamTreasuryPDA);
 
-            // Calculate expected treasury fee (1 SOL * 50% * 75% = 0.375 SOL)
-            const expectedTreasuryFee = 1 * LAMPORTS_PER_SOL * 0.5 * 0.75;
-            // Calculate expected anti-scam fee (1 SOL * 50% * 25% = 0.125 SOL)
-            const expectedAntiScamFee = 1 * LAMPORTS_PER_SOL * 0.5 * 0.25;
+            // Calculate expected treasury fee based on minimum payment (not 1 SOL)
+            // Formula: minimum_payment * fee_rate(basis points) / 10000 * treasury_percent / 100
+            const totalFee = minimumPayment.toNumber() * highMintFeeBasisPoints / 10000;
+            const expectedTreasuryFee = totalFee * treasuryFeePercent / 100;
+            const expectedAntiScamFee = totalFee * antiScamFeePercent / 100;
+
+            console.log(`Expected total fee: ${totalFee / LAMPORTS_PER_SOL} SOL`);
+            console.log(`Expected treasury fee: ${expectedTreasuryFee / LAMPORTS_PER_SOL} SOL`);
+            console.log(`Expected anti-scam fee: ${expectedAntiScamFee / LAMPORTS_PER_SOL} SOL`);
 
             // Verify treasury increase
             const treasuryIncrease = treasuryBalanceAfter - treasuryBalanceBefore;
-            console.log(`Treasury increase: ${treasuryIncrease / LAMPORTS_PER_SOL} SOL`);
+            console.log(`Actual treasury increase: ${treasuryIncrease / LAMPORTS_PER_SOL} SOL`);
             expect(treasuryIncrease).to.be.approximately(
                 expectedTreasuryFee,
-                0.01 * LAMPORTS_PER_SOL, // Allow for small variations
+                0.001 * LAMPORTS_PER_SOL, // Allow for small variations
                 "Treasury fee was not calculated correctly"
             );
 
             // Verify anti-scam treasury increase
             const antiScamIncrease = antiScamBalanceAfter - antiScamBalanceBefore;
-            console.log(`Anti-scam treasury increase: ${antiScamIncrease / LAMPORTS_PER_SOL} SOL`);
+            console.log(`Actual anti-scam increase: ${antiScamIncrease / LAMPORTS_PER_SOL} SOL`);
             expect(antiScamIncrease).to.be.approximately(
                 expectedAntiScamFee,
-                0.01 * LAMPORTS_PER_SOL, // Allow for small variations
+                0.001 * LAMPORTS_PER_SOL, // Allow for small variations
                 "Anti-scam fee was not calculated correctly"
             );
 
