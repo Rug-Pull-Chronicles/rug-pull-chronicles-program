@@ -20,7 +20,7 @@ pub struct CreatorInput {
 #[derive(Accounts)]
 pub struct AddCollectionPlugin<'info> {
     /// The admin who can add collection royalties
-    #[account(mut)]
+    #[account(mut, constraint = admin.key() == config.admin @ crate::error::RuggedError::Unauthorized)]
     pub admin: Signer<'info>,
 
     /// The program's config account
