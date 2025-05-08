@@ -303,13 +303,33 @@ The following security improvements have been implemented to enhance the securit
 #### Why MintTracker is Necessary
 The MintTracker serves multiple critical functions:
 - **Explicit Validation**: Without it, there's no built-in mechanism in Solana or Metaplex that prevents trying to create multiple NFTs with the same mint address
-- **Transaction Atomicity**: Ensures all program operations (fee collection, counter updates) only occur if the NFT hasn't been previously minted
-- **Clean Error Handling**: Provides a clear, program-specific error instead of relying on Metaplex's initialization to fail
-- **State Consistency**: Prevents scenarios where program state (like minting counters) could be updated even if the underlying NFT creation fails
+- **Transaction Atomicity**: Ensures all program operations (fee collection, mint tracking) are atomic
+- **Idempotency Protection**: Prevents double-minting even if a user accidentally submits the same transaction multiple times
 
-Although Metaplex would eventually reject duplicate NFT creation attempts, this would happen after our program has already executed other operations, potentially leading to inconsistent state.
+### 2. Freeze Delegate Plugin Integration
+The program now supports the Metaplex Core Freeze Delegate plugin for NFTs, providing enhanced security and flexibility:
 
-### 2. Asset Tracking and Metadata
+#### Key Features
+- **Asset Freezing**: Ability to temporarily freeze NFTs to prevent transfers
+- **Flexible Delegation**: Can assign freeze authority to a specific delegate address or keep owner-managed
+- **Escrow-less Security**: Perfect for implementing escrow-less staking, marketplaces, and in-game item locking
+
+#### Use Cases
+- **Escrow-less Staking**: Freeze NFTs while they are staked without transferring ownership
+- **Marketplace Security**: Lock NFTs during listing periods without transferring to an escrow
+- **Game Mechanics**: Temporarily lock in-game NFT items during gameplay or tournaments
+- **Rental Systems**: Enable NFT renting while preventing unauthorized transfers
+- **Collateral Management**: Secure NFTs used as collateral in lending protocols
+
+#### Implementation
+The program provides three key instructions for managing freezable assets:
+- `add_freeze_delegate`: Add the freeze plugin to an NFT with optional delegate address
+- `freeze_asset`: Freeze an NFT to prevent transfers (must be called by the delegate)
+- `thaw_asset`: Unfreeze an NFT to restore transfer capability
+
+See the [Metaplex Freeze Delegate documentation](https://developers.metaplex.com/core/plugins/freeze-delegate) for more details on the underlying plugin implementation.
+
+### 3. Asset Tracking and Metadata
 - Added counters to the Config account to track total minted NFTs:
   - `total_minted_standard`: Tracks the total number of standard NFTs minted
   - `total_minted_scammed`: Tracks the total number of scammed NFTs minted
@@ -318,18 +338,18 @@ Although Metaplex would eventually reject duplicate NFT creation attempts, this 
   - Minting metadata (minter address, timestamp)
 - This approach leverages the existing Metaplex NFT structure to store information efficiently
 
-### 3. Configurable Minimum Payment
+### 4. Configurable Minimum Payment
 - The minimum payment value (previously hardcoded) is now configurable via the Config account
 - Added the `update_minimum_payment` instruction to allow admins to modify this value
 - Includes validation to ensure the minimum payment is not set too low (minimum 0.1 SOL)
 
-### 4. Circuit Breaker / Pause Functionality
+### 5. Circuit Breaker / Pause Functionality
 - Added a pause flag to the Config account that can be toggled by the admin
 - Added the `toggle_paused` instruction to turn the pause state on or off
 - All mint operations check the pause state before execution
 - This provides emergency shutdown capability in case of vulnerabilities
 
-### 5. Expanded Error Handling
+### 6. Expanded Error Handling
 - Added more specific error types for better error handling and user feedback:
   - `InvalidMinimumPayment`: Enforces minimum payment constraints
   - `ProgramPaused`: Returned when attempting operations while paused
@@ -337,12 +357,12 @@ Although Metaplex would eventually reject duplicate NFT creation attempts, this 
   - `ArithmeticOverflow`: More precise overflow error handling
   - `OperationNotAllowedWhenPaused`: Clear indication that paused state prevents operations
 
-### 6. Program Versioning
+### 7. Program Versioning
 - Added a version field to the Config account to track program versions
 - This facilitates future upgrades and migrations
 - Initialized at version 1, with the ability to check and upgrade in the future
 
-### 7. Master Edition Support
+### 8. Master Edition Support
 - Collections now support the Metaplex Master Edition plugin, allowing for limited edition NFTs
 - Integrated Master Edition parameters directly into the collection creation process
   - `max_supply`: Optional parameter to set the maximum number of editions
@@ -350,7 +370,7 @@ Although Metaplex would eventually reject duplicate NFT creation attempts, this 
   - `edition_uri`: Optional custom URI for Master Edition metadata
 - Each collection tracks whether it has a Master Edition and its max supply in the Config account
 
-### 8. Improved Memory Safety with Rust Borrowing Rules
+### 9. Improved Memory Safety with Rust Borrowing Rules
 - Refactored the collection creation process to properly handle Rust's borrowing rules
 - Implemented a step-by-step builder pattern that safely constructs complex instructions
 - Fixed temporary value lifetime issues that could cause compilation errors

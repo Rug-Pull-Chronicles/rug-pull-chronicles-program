@@ -47,11 +47,9 @@ const scammedCollectionKeypair = Keypair.generate();
 
 describe("rug-pull-chronicles-program", () => {
     // Configure the client to use the local cluster.
-    const provider = anchor.AnchorProvider.env();
     anchor.setProvider(provider);
 
-    // const program = anchor.workspace.RugPullChroniclesProgram as Program<RugPullChroniclesProgram>;
-    const program = anchor.workspace.RugPullChroniclesProgram;
+    const program = anchor.workspace.RugPullChroniclesProgram as Program<RugPullChroniclesProgram>;
 
     // Global seed for config
     let seed = new BN(9876);
@@ -110,6 +108,14 @@ describe("rug-pull-chronicles-program", () => {
         console.log("Treasury PDA:", treasuryPDA.toString());
         console.log("Anti-Scam Treasury PDA:", antiScamTreasuryPDA.toString());
     });
+
+    // Helper function to derive the mint tracker PDA address
+    function getMintTrackerPDA(mintAddress: PublicKey): [PublicKey, number] {
+        return PublicKey.findProgramAddressSync(
+            [Buffer.from("mint_tracker"), mintAddress.toBuffer()],
+            program.programId
+        );
+    }
 
     it("Initializes the program", async () => {
         try {
@@ -1453,6 +1459,96 @@ describe("rug-pull-chronicles-program", () => {
             console.log("Master Edition limit settings created successfully with max supply of", lowLimit);
         } catch (error) {
             console.error("Error testing edition limits:", error);
+            throw error;
+        }
+    });
+
+    it("Adds Freeze Delegate plugin to an NFT", async () => {
+        try {
+            // First, mint a new NFT
+            const nftKeypair = Keypair.generate();
+
+            // Create the NFT with metadata
+            await program.methods
+                .mintStandardNft(
+                    "Freeze Test NFT",
+                    "https://example.com/freeze-test.json",
+                    "2022",
+                    "1000000",
+                    "DeFi",
+                    "Rug Pull"
+                )
+                .accounts({
+                    user: provider.wallet.publicKey,
+                    ruggedNftMint: nftKeypair.publicKey,
+                    updateAuthorityPda: updateAuthorityPDA,
+                    standardCollection: collectionKeypair.publicKey,
+                    treasury: treasuryPDA,
+                    antiscamTreasury: antiScamTreasuryPDA,
+                    mintTracker: getMintTrackerPDA(nftKeypair.publicKey)[0],
+                    systemProgram: SystemProgram.programId,
+                    mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                    config: configPDA
+                })
+                .signers([nftKeypair])
+                .rpc();
+
+            console.log(`Minted test NFT with address: ${nftKeypair.publicKey.toString()}`);
+
+            // Create delegate keypair
+            const delegateKeypair = Keypair.generate();
+
+            // Add the freeze delegate plugin to the NFT
+            // Note: The wallet is the owner of the NFT since we just minted it
+            await program.methods
+                .addFreezeDelegate(
+                    false, // Initial state: not frozen
+                    delegateKeypair.publicKey // Delegate address
+                )
+                .accounts({
+                    user: provider.wallet.publicKey,
+                    asset: nftKeypair.publicKey,
+                    owner: provider.wallet.publicKey, // Add the owner account
+                    collection: collectionKeypair.publicKey,
+                    updateAuthorityPda: updateAuthorityPDA,
+                    mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
+                    config: configPDA
+                })
+                .rpc();
+
+            // Test freezing the NFT with the delegate
+            await program.methods
+                .freezeAsset()
+                .accounts({
+                    delegate: delegateKeypair.publicKey,
+                    asset: nftKeypair.publicKey,
+                    collection: collectionKeypair.publicKey, // Add the collection parameter
+                    mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
+                    config: configPDA
+                })
+                .signers([delegateKeypair])
+                .rpc();
+
+            // Test thawing the NFT with the delegate
+            await program.methods
+                .thawAsset()
+                .accounts({
+                    delegate: delegateKeypair.publicKey,
+                    asset: nftKeypair.publicKey,
+                    collection: collectionKeypair.publicKey, // Add the collection parameter
+                    mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
+                    config: configPDA
+                })
+                .signers([delegateKeypair])
+                .rpc();
+
+            // If we got here, the test was successful
+            console.log("Freeze/thaw operations completed successfully");
+        } catch (error) {
+            console.error("Error in freeze delegate test:", error);
             throw error;
         }
     });

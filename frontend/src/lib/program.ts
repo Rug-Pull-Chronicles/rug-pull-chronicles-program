@@ -189,3 +189,124 @@ export const addMasterEditionPlugin = async (
         throw error;
     }
 };
+
+// Add Freeze Delegate plugin to an NFT
+export const addFreezeDelegate = async (
+    wallet: WalletContextState,
+    connection: Connection,
+    assetAddress: PublicKey,
+    initialFrozen: boolean = false,
+    delegateAddress: PublicKey | null = null
+) => {
+    if (!wallet.publicKey) {
+        throw new Error('Wallet not connected');
+    }
+
+    const program = getProgram(wallet, connection);
+    const { configPDA, updateAuthorityPDA } = await getPDAs();
+
+    try {
+        console.log('Adding Freeze Delegate plugin with the following data:', {
+            assetAddress: assetAddress.toBase58(),
+            initialFrozen,
+            delegateAddress: delegateAddress?.toBase58() || 'Owner (default)'
+        });
+
+        const tx = await program.methods
+            .addFreezeDelegate(
+                initialFrozen,
+                delegateAddress
+            )
+            .accounts({
+                user: wallet.publicKey,
+                config: configPDA,
+                asset: assetAddress,
+                updateAuthorityPda: updateAuthorityPDA,
+                mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                systemProgram: SystemProgram.programId,
+            })
+            .rpc();
+
+        return {
+            signature: tx,
+            assetAddress: assetAddress.toBase58(),
+        };
+    } catch (error) {
+        console.error('Error adding Freeze Delegate plugin:', error);
+        throw error;
+    }
+};
+
+// Freeze an asset
+export const freezeAsset = async (
+    wallet: WalletContextState,
+    connection: Connection,
+    assetAddress: PublicKey
+) => {
+    if (!wallet.publicKey) {
+        throw new Error('Wallet not connected');
+    }
+
+    const program = getProgram(wallet, connection);
+    const { configPDA } = await getPDAs();
+
+    try {
+        console.log('Freezing asset:', assetAddress.toBase58());
+
+        const tx = await program.methods
+            .freezeAsset()
+            .accounts({
+                delegate: wallet.publicKey,
+                config: configPDA,
+                asset: assetAddress,
+                mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                systemProgram: SystemProgram.programId,
+            })
+            .rpc();
+
+        return {
+            signature: tx,
+            assetAddress: assetAddress.toBase58(),
+        };
+    } catch (error) {
+        console.error('Error freezing asset:', error);
+        throw error;
+    }
+};
+
+// Thaw an asset
+export const thawAsset = async (
+    wallet: WalletContextState,
+    connection: Connection,
+    assetAddress: PublicKey
+) => {
+    if (!wallet.publicKey) {
+        throw new Error('Wallet not connected');
+    }
+
+    const program = getProgram(wallet, connection);
+    const { configPDA } = await getPDAs();
+
+    try {
+        console.log('Thawing asset:', assetAddress.toBase58());
+
+        const tx = await program.methods
+            .thawAsset()
+            .accounts({
+                delegate: wallet.publicKey,
+                config: configPDA,
+                asset: assetAddress,
+                mplCoreProgram: MPL_CORE_PROGRAM_ID,
+                systemProgram: SystemProgram.programId,
+            })
+            .rpc();
+
+        return {
+            signature: tx,
+            assetAddress: assetAddress.toBase58(),
+        };
+    } catch (error) {
+        console.error('Error thawing asset:', error);
+        throw error;
+    }
+};
