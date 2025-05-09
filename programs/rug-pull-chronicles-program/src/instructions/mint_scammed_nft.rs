@@ -47,6 +47,16 @@ pub struct MintScammedNft<'info> {
     )]
     pub antiscam_treasury: UncheckedAccount<'info>,
 
+    /// Simple tracker to prevent duplicate mints - acts as a flag
+    #[account(
+        init,
+        payer = user,
+        space = MintTracker::INIT_SPACE,
+        seeds = [b"mint_tracker", rugged_nft_mint.key().as_ref()],
+        bump
+    )]
+    pub mint_tracker: Account<'info, MintTracker>,
+
     pub system_program: Program<'info, System>,
     /// CHECK: This is the ID of the Metaplex Core program
     #[account(address = mpl_core::ID)]
@@ -64,8 +74,34 @@ impl<'info> MintScammedNft<'info> {
         uri: String,
         scam_details: String,
     ) -> Result<()> {
+        // Check if the program is paused
+        require!(
+            !self.config.paused,
+            crate::error::RuggedError::ProgramPaused
+        );
+
+        // Check if we've reached the max supply limit for this collection
+        if self.config.scammed_collection_has_master_edition {
+            if let Some(max_supply) = self.config.scammed_collection_max_supply {
+                require!(
+                    self.config.total_minted_scammed < max_supply as u64,
+                    crate::error::RuggedError::MaxSupplyExceeded
+                );
+
+                // If we're close to hitting the max supply, log a warning
+                let remaining = max_supply as u64 - self.config.total_minted_scammed;
+                if remaining <= 5 {
+                    msg!(
+                        "WARNING: Only {} editions remaining out of max supply {}",
+                        remaining,
+                        max_supply
+                    );
+                }
+            }
+        }
+
         // Calculate the fees first
-        let (treasury_amount, antiscam_amount) = calculate_mint_fees(&self.config);
+        let (treasury_amount, antiscam_amount) = calculate_mint_fees(&self.config)?;
 
         // Transfer to main treasury
         anchor_lang::system_program::transfer(
@@ -119,24 +155,28 @@ impl<'info> MintScammedNft<'info> {
             .uri(uri)
             .invoke_signed(&[&[b"upd_auth", &[bump]]])?;
 
-        // Add the scam attributes plugin
-        self.add_attributes_plugin(scam_details, bump)?;
-
-        Ok(())
-    }
-
-    pub fn add_attributes_plugin(&self, scam_details: String, bump: u8) -> Result<()> {
-        // Create attributes list with the scam details
+        // Add the attributes plugin with scam details and minting metadata
+        let timestamp = Clock::get()?.unix_timestamp;
         let attributes = Attributes {
-            attribute_list: vec![Attribute {
-                key: "scam_details".to_string(),
-                value: scam_details,
-            }],
+            attribute_list: vec![
+                // Scam details
+                Attribute {
+                    key: "scam_details".to_string(),
+                    value: scam_details,
+                },
+                // Minting metadata
+                Attribute {
+                    key: "minted_by".to_string(),
+                    value: self.user.key().to_string(),
+                },
+                Attribute {
+                    key: "minted_at".to_string(),
+                    value: timestamp.to_string(),
+                },
+            ],
         };
 
-        // Add the plugin using CPI
-        // For plugins, we need to pass the collection information
-        // and the update authority needs to sign
+        // Add the plugin with all attributes
         AddPluginV1CpiBuilder::new(&self.mpl_core_program.to_account_info())
             .asset(&self.rugged_nft_mint.to_account_info())
             .authority(Some(&self.update_authority_pda.to_account_info()))
@@ -146,9 +186,19 @@ impl<'info> MintScammedNft<'info> {
             .plugin(Plugin::Attributes(attributes))
             .invoke_signed(&[&[b"upd_auth", &[bump]]])?;
 
+        // Set the mint tracker flag to true to prevent duplicate mints
+        self.mint_tracker.is_minted = true;
+
+        // Increment the total minted counter
+        self.config.total_minted_scammed = self
+            .config
+            .total_minted_scammed
+            .checked_add(1)
+            .ok_or(ProgramError::ArithmeticOverflow)?;
+
         msg!(
-            "Added attributes plugin to asset {}",
-            self.rugged_nft_mint.key()
+            "Scammed NFT minted successfully. Total minted: {}",
+            self.config.total_minted_scammed
         );
 
         Ok(())

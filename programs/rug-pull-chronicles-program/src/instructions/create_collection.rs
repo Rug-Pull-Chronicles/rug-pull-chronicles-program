@@ -1,11 +1,16 @@
 use crate::state::config::Config;
 use anchor_lang::prelude::*;
 use mpl_core::instructions::CreateCollectionV2CpiBuilder;
+use mpl_core::types::{MasterEdition, Plugin, PluginAuthorityPair};
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct CreateCollectionArgs {
     pub name: String,
     pub uri: String,
+    // Add optional Master Edition parameters
+    pub max_supply: Option<u32>,
+    pub edition_name: Option<String>,
+    pub edition_uri: Option<String>,
 }
 
 #[derive(Accounts)]
@@ -14,7 +19,7 @@ pub struct CreateCollection<'info> {
     pub collection: Signer<'info>,
     /// CHECK: this account will be checked by the mpl_core program
     pub update_authority: Option<UncheckedAccount<'info>>,
-    #[account(mut)]
+    #[account(mut, constraint = payer.key() == config.admin @ crate::error::RuggedError::Unauthorized)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
     /// CHECK: This is the ID of the Metaplex Core program
@@ -27,25 +32,82 @@ pub struct CreateCollection<'info> {
 }
 
 impl<'info> CreateCollection<'info> {
-    pub fn create_core_collection(&self, args: CreateCollectionArgs) -> Result<()> {
-        let update_authority = match &self.update_authority {
-            Some(update_authority) => Some(update_authority.to_account_info()),
-            None => None,
+    pub fn create_core_collection(&mut self, args: CreateCollectionArgs) -> Result<()> {
+        // Create the Master Edition plugin if max_supply is provided
+        let plugins = if args.max_supply.is_some()
+            || args.edition_name.is_some()
+            || args.edition_uri.is_some()
+        {
+            // Create the Master Edition plugin
+            let master_edition = MasterEdition {
+                max_supply: args.max_supply,
+                name: args.edition_name,
+                uri: args.edition_uri,
+            };
+
+            msg!("Adding Master Edition plugin to collection");
+            if let Some(max_supply) = args.max_supply {
+                msg!("Max supply set to: {}", max_supply);
+            }
+
+            // Create a vector with the Master Edition plugin using PluginAuthorityPair
+            vec![PluginAuthorityPair {
+                plugin: Plugin::MasterEdition(master_edition),
+                authority: None, // Use default authority
+            }]
+        } else {
+            // No plugins
+            vec![]
         };
 
-        CreateCollectionV2CpiBuilder::new(&self.mpl_core_program.to_account_info())
-            .collection(&self.collection.to_account_info())
-            .payer(&self.payer.to_account_info())
-            .update_authority(update_authority.as_ref())
-            .system_program(&self.system_program.to_account_info())
-            .name(args.name)
-            .uri(args.uri)
-            .invoke()?;
+        let collection_info = self.collection.to_account_info();
+        let payer_info = self.payer.to_account_info();
+        let system_program_info = self.system_program.to_account_info();
+        let core_program_info = self.mpl_core_program.to_account_info();
+
+        // Get update authority if it exists
+        let update_authority_info = self
+            .update_authority
+            .as_ref()
+            .map(|auth| auth.to_account_info());
+
+        // Build the instruction step by step
+        let mut builder = CreateCollectionV2CpiBuilder::new(&core_program_info);
+        let builder = builder.collection(&collection_info);
+        let builder = builder.payer(&payer_info);
+        let builder = builder.system_program(&system_program_info);
+        let builder = builder.name(args.name);
+        let mut builder = builder.uri(args.uri);
+
+        // Add update_authority if it exists
+        if let Some(auth_info) = update_authority_info.as_ref() {
+            builder = builder.update_authority(Some(auth_info));
+        }
+
+        // Add plugins if any
+        if !plugins.is_empty() {
+            builder = builder.plugins(plugins);
+        }
+
+        // Invoke the instruction
+        builder.invoke()?;
+
+        // Update the config to track Master Edition status
+        if args.max_supply.is_some() {
+            if self.config.standard_collection == self.collection.key() {
+                self.config.standard_collection_has_master_edition = true;
+                self.config.standard_collection_max_supply = args.max_supply;
+                msg!("Updated config: Standard collection now has Master Edition plugin");
+            } else if self.config.scammed_collection == self.collection.key() {
+                self.config.scammed_collection_has_master_edition = true;
+                self.config.scammed_collection_max_supply = args.max_supply;
+                msg!("Updated config: Scammed collection now has Master Edition plugin");
+            }
+        }
 
         msg!("Collection created successfully: {}", self.collection.key());
 
-        // Return success, we'll add a separate instruction to update the config
-        // since we can't easily modify it here
+        // Return success
         Ok(())
     }
 }

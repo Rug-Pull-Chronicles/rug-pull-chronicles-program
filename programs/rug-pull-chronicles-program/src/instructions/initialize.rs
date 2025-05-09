@@ -71,7 +71,15 @@ impl<'info> Initialize<'info> {
         let treasury_fee_percent = 60; // 60% to regular treasury
         let antiscam_fee_percent = 40; // 40% to anti-scam treasury
 
+        // Default minimum payment (0.01 SOL in lamports)
+        let minimum_payment = 10_000_000;
+
+        // Collection supply limits
+        let standard_max_supply = Some(100);
+        let scammed_max_supply = Some(50);
+
         self.config.set_inner(Config {
+            admin: self.admin.key(),
             seed,
             update_authority_bump: bumps.update_authority_pda,
             treasury_bump: bumps.treasury_pda,
@@ -87,7 +95,20 @@ impl<'info> Initialize<'info> {
             mint_fee_basis_points,
             treasury_fee_percent,
             antiscam_fee_percent,
+            minimum_payment,                                     // New field
+            paused: false,                                       // Initialize as not paused
+            total_minted_standard: 0,                            // No NFTs minted yet
+            total_minted_scammed: 0,                             // No NFTs minted yet
+            version: 1,                                          // Initial version
+            standard_collection_has_master_edition: true,        // Initialize as true
+            standard_collection_max_supply: standard_max_supply, // Limit to 100 editions
+            scammed_collection_has_master_edition: true,         // Initialize as true
+            scammed_collection_max_supply: scammed_max_supply,   // Limit to 50 editions
         });
+
+        msg!("Initialized with Master Edition support:");
+        msg!("  Standard Collection Max Supply: 100");
+        msg!("  Scammed Collection Max Supply: 50");
 
         Ok(())
     }

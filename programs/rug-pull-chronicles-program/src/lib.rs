@@ -7,13 +7,16 @@ pub mod state;
 pub mod utils;
 
 use instructions::add_collection_plugin::*;
+use instructions::add_freeze_delegate::*;
 use instructions::create_collection::*;
+use instructions::freeze_asset::*;
 use instructions::initialize::*;
 use instructions::mint_scammed_nft::*;
 use instructions::mint_standard_nft::*;
+use instructions::thaw_asset::*;
 use instructions::update_config::*;
 
-declare_id!("6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9");
+declare_id!("EPBUpnJA1ybxzw8f4o1Fj8UXUtTPpcnGpqBq6gZfM7Y1");
 
 #[program]
 pub mod rug_pull_chronicles_program {
@@ -31,8 +34,17 @@ pub mod rug_pull_chronicles_program {
         ctx: Context<CreateCollection>,
         name: String,
         uri: String,
+        max_supply: Option<u32>,
+        edition_name: Option<String>,
+        edition_uri: Option<String>,
     ) -> Result<()> {
-        let args = CreateCollectionArgs { name, uri };
+        let args = CreateCollectionArgs {
+            name,
+            uri,
+            max_supply,
+            edition_name,
+            edition_uri,
+        };
         ctx.accounts.create_core_collection(args)
     }
 
@@ -63,6 +75,14 @@ pub mod rug_pull_chronicles_program {
         )
     }
 
+    pub fn update_minimum_payment(ctx: Context<UpdateConfig>, minimum_payment: u64) -> Result<()> {
+        ctx.accounts.update_minimum_payment(minimum_payment)
+    }
+
+    pub fn toggle_paused(ctx: Context<UpdateConfig>) -> Result<()> {
+        ctx.accounts.toggle_paused()
+    }
+
     pub fn add_collection_royalties(
         ctx: Context<AddCollectionPlugin>,
         basis_points: u16,
@@ -73,6 +93,23 @@ pub mod rug_pull_chronicles_program {
             creators,
         };
         ctx.accounts.add_collection_royalties(args)
+    }
+
+    pub fn add_freeze_delegate(
+        ctx: Context<AddFreezePlugin>,
+        frozen: bool,
+        delegate: Option<Pubkey>,
+    ) -> Result<()> {
+        let args = AddFreezePluginArgs { frozen, delegate };
+        ctx.accounts.add_freeze_delegate(args)
+    }
+
+    pub fn freeze_asset(ctx: Context<FreezeAsset>) -> Result<()> {
+        ctx.accounts.freeze_asset()
+    }
+
+    pub fn thaw_asset(ctx: Context<ThawAsset>) -> Result<()> {
+        ctx.accounts.thaw_asset()
     }
 
     pub fn mint_standard_nft(
