@@ -1,4 +1,4 @@
-import MintNFT from "@/components/MintNFT";
+import MintNFT from "@/app/mint/_components/MintNFT";
 import { SelectScam } from "./_components/SelectScam";
 
 export default function Home() {

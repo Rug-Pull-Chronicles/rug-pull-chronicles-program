@@ -3,7 +3,6 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useState } from "react";
 import { PublicKey } from "@solana/web3.js";
-import { uploadMetadata } from "@/lib/blockchain/uploadMetadata";
 import { generateImage } from "@/lib/generateImage";
 import { mintStandardNFT } from "@/lib/program";
 
@@ -108,41 +107,17 @@ export default function MintNFT({
     }
   };
 
-  // Usage example
-  async function example() {
-    // Load your wallet JSON file
-    const metadata = {
-      name: "NFT test",
-      description: "This is my NFT with permanent storage on Arweave",
-      attributes: [{ trait_type: "Collection", value: "Demo" }],
-    };
+  // Calculate a random date for the rekt news article based on year
+  const randomDate = () => {
+    const month = Math.floor(Math.random() * 12) + 1;
+    const day = Math.floor(Math.random() * 28) + 1;
+    return `${month.toString().padStart(2, "0")}/${day
+      .toString()
+      .padStart(2, "0")}/${year}`;
+  };
 
-    const minimalPngBuffer = Buffer.from([
-      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
-      0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-      0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4, 0x89, 0x00, 0x00, 0x00,
-      0x0a, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9c, 0x63, 0x00, 0x01, 0x00, 0x00,
-      0x05, 0x00, 0x01, 0x0d, 0x0a, 0x2d, 0xb4, 0x00, 0x00, 0x00, 0x00, 0x49,
-      0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
-    ]);
-
-    try {
-      const { metadataUri, imageUri } = await uploadMetadata(
-        metadata,
-        minimalPngBuffer,
-        "image/png"
-      );
-
-      console.log("Image uploaded to:", imageUri);
-      console.log("Metadata uploaded to:", metadataUri);
-
-      // Return the metadata URI to your Solana program
-      return metadataUri;
-    } catch (error) {
-      console.error("Upload failed:", error);
-      throw error;
-    }
-  }
+  // Generate fake rekt.news article URL
+  const rektNewsUrl = "https://rekt.news/dystopian-diaries";
 
   return (
     <div className="bg-black/90 rounded-lg p-6 max-w-xl mx-auto">
@@ -152,37 +127,60 @@ export default function MintNFT({
         </h2>
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <button onClick={example}>Example</button>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
-            Collection Address
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={collectionAddress}
-              onChange={(e) => setCollectionAddress(e.target.value)}
-              placeholder="Enter collection address (required)"
-              className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <button
-              onClick={() => setCollectionAddress(STANDARD_COLLECTION)}
-              className="px-2 py-1 bg-purple-700 text-white text-xs rounded hover:bg-purple-600"
-              title="Use the Standard Collection from tests"
-            >
-              Standard
-            </button>
-            <button
-              onClick={() => setCollectionAddress(SCAMMED_COLLECTION)}
-              className="px-2 py-1 bg-purple-700 text-white text-xs rounded hover:bg-purple-600"
-              title="Use the Scammed Collection from tests"
-            >
-              Scammed
-            </button>
+      {/* Scam Details Card */}
+      <div className="mb-6 border border-purple-700 rounded-lg p-4 bg-gray-900">
+        <div className="flex justify-between items-start mb-3">
+          <h3 className="text-xl font-bold text-white">{title}</h3>
+          <span className="bg-red-700 text-white text-xs px-2 py-1 rounded">
+            ${amount} LOST
+          </span>
+        </div>
+
+        <p className="text-gray-300 mb-4">{description}</p>
+
+        <div className="grid grid-cols-2 gap-2 text-sm mb-4">
+          <div className="bg-gray-800 p-2 rounded">
+            <span className="text-gray-400">Category:</span>
+            <span className="text-white ml-1 font-medium">{category}</span>
+          </div>
+          <div className="bg-gray-800 p-2 rounded">
+            <span className="text-gray-400">Attack Type:</span>
+            <span className="text-white ml-1 font-medium">{typeOfAttack}</span>
+          </div>
+          <div className="bg-gray-800 p-2 rounded">
+            <span className="text-gray-400">Year:</span>
+            <span className="text-white ml-1 font-medium">{year}</span>
+          </div>
+          <div className="bg-gray-800 p-2 rounded">
+            <span className="text-gray-400">Date:</span>
+            <span className="text-white ml-1 font-medium">{randomDate()}</span>
           </div>
         </div>
 
+        <div className="bg-black p-3 rounded border border-gray-700 mb-4">
+          <div className="flex items-center">
+            <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center mr-2">
+              <span className="text-white text-xs font-bold">R</span>
+            </div>
+            <h4 className="text-white text-sm font-bold">REKT News</h4>
+          </div>
+          <p className="text-gray-400 text-xs mt-2">
+            &quot;Another day, another rug pull. The {category} space has been
+            hit with yet another {typeOfAttack.toLowerCase()} as {title}
+            developers vanish with investor funds...&quot;
+          </p>
+          <a
+            href={rektNewsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-purple-400 hover:text-purple-300 text-xs mt-2 inline-block"
+          >
+            Read the full rekt.news article →
+          </a>
+        </div>
+      </div>
+
+      <div className="space-y-4">
         <button
           onClick={handleMint}
           disabled={loading || !wallet.publicKey || !collectionAddress}

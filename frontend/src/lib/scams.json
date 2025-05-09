@@ -13,6 +13,7 @@
   },
   "scams": [
     {
+      "id": "2021-defi-oracle-500k",
       "year": "2021",
       "amount_usd": "$500k",
       "category": "DeFi",
@@ -21,6 +22,7 @@
       "description": "Attackers manipulated ChainMint's price oracle, extracting $500k from the DeFi protocol."
     },
     {
+      "id": "2021-rwa-flashloan-2m",
       "year": "2021",
       "amount_usd": "$2M",
       "category": "RWA",
@@ -29,6 +31,7 @@
       "description": "Flash loans disrupted asset pricing, resulting in a $2M loss."
     },
     {
+      "id": "2021-nft-phishing-15m",
       "year": "2021",
       "amount_usd": "$15M",
       "category": "NFT",
@@ -37,6 +40,7 @@
       "description": "Collectors tricked by phishing emails lost $15M worth of NFTs."
     },
     {
+      "id": "2021-gaming-rugpull-50m",
       "year": "2021",
       "amount_usd": "$50M",
       "category": "Gaming",
@@ -45,6 +49,7 @@
       "description": "Game developers disappeared overnight, stealing $50M in assets."
     },
     {
+      "id": "2021-socialfi-governance-120m",
       "year": "2021",
       "amount_usd": "$120M",
       "category": "SocialFi",
@@ -54,6 +59,7 @@
     },
 
     {
+      "id": "2022-rwa-governance-500k",
       "year": "2022",
       "amount_usd": "$500k",
       "category": "RWA",
@@ -62,6 +68,7 @@
       "description": "Manipulated DAO votes diverted $500k from sustainable projects."
     },
     {
+      "id": "2022-nft-rugpull-2m",
       "year": "2022",
       "amount_usd": "$2M",
       "category": "NFT",
@@ -70,6 +77,7 @@
       "description": "Creators abandoned project, taking $2M from investors."
     },
     {
+      "id": "2022-gaming-flashloan-15m",
       "year": "2022",
       "amount_usd": "$15M",
       "category": "Gaming",
@@ -78,6 +86,7 @@
       "description": "Attackers used flash loans causing a $15M loss in gaming assets."
     },
     {
+      "id": "2022-socialfi-oracle-50m",
       "year": "2022",
       "amount_usd": "$50M",
       "category": "SocialFi",
@@ -86,6 +95,7 @@
       "description": "Oracle exploit allowed attackers to steal $50M from the DAO treasury."
     },
     {
+      "id": "2022-defi-phishing-120m",
       "year": "2022",
       "amount_usd": "$120M",
       "category": "DeFi",
@@ -95,6 +105,7 @@
     },
 
     {
+      "id": "2023-nft-flashloan-500k",
       "year": "2023",
       "amount_usd": "$500k",
       "category": "NFT",
@@ -103,6 +114,7 @@
       "description": "NFT collateral prices manipulated, draining $500k."
     },
     {
+      "id": "2023-gaming-phishing-2m",
       "year": "2023",
       "amount_usd": "$2M",
       "category": "Gaming",
@@ -111,6 +123,7 @@
       "description": "Players tricked by phishing into revealing private keys, losing $2M."
     },
     {
+      "id": "2023-socialfi-rugpull-15m",
       "year": "2023",
       "amount_usd": "$15M",
       "category": "SocialFi",
@@ -119,6 +132,7 @@
       "description": "Developers disappeared after token sale, taking $15M."
     },
     {
+      "id": "2023-defi-governance-50m",
       "year": "2023",
       "amount_usd": "$50M",
       "category": "DeFi",
@@ -127,6 +141,7 @@
       "description": "Attackers gained voting control, draining $50M from the treasury."
     },
     {
+      "id": "2023-rwa-oracle-120m",
       "year": "2023",
       "amount_usd": "$120M",
       "category": "RWA",
@@ -136,6 +151,7 @@
     },
 
     {
+      "id": "2024-gaming-rugpull-500k",
       "year": "2024",
       "amount_usd": "$500k",
       "category": "Gaming",
@@ -144,6 +160,7 @@
       "description": "Developers vanished with $500k of in-game assets."
     },
     {
+      "id": "2024-socialfi-governance-2m",
       "year": "2024",
       "amount_usd": "$2M",
       "category": "SocialFi",
@@ -152,6 +169,7 @@
       "description": "Attackers manipulated votes, stealing $2M from treasury."
     },
     {
+      "id": "2024-defi-flashloan-15m",
       "year": "2024",
       "amount_usd": "$15M",
       "category": "DeFi",
@@ -160,6 +178,7 @@
       "description": "Yield farming pools exploited via flash loans for $15M."
     },
     {
+      "id": "2024-rwa-phishing-50m",
       "year": "2024",
       "amount_usd": "$50M",
       "category": "RWA",
@@ -168,6 +187,7 @@
       "description": "Investors deceived by phishing campaigns, losing $50M."
     },
     {
+      "id": "2024-nft-oracle-120m",
       "year": "2024",
       "amount_usd": "$120M",
       "category": "NFT",
@@ -177,6 +197,7 @@
     },
 
     {
+      "id": "2025-socialfi-flashloan-500k",
       "year": "2025",
       "amount_usd": "$500k",
       "category": "SocialFi",
@@ -185,6 +206,7 @@
       "description": "Token prices manipulated via flash loans, $500k lost."
     },
     {
+      "id": "2025-defi-rugpull-2m",
       "year": "2025",
       "amount_usd": "$2M",
       "category": "DeFi",
@@ -193,6 +215,7 @@
       "description": "Creators vanished with liquidity pools worth $2M."
     },
     {
+      "id": "2025-rwa-governance-15m",
       "year": "2025",
       "amount_usd": "$15M",
       "category": "RWA",
@@ -201,6 +224,7 @@
       "description": "Attackers hijacked governance, redirecting $15M."
     },
     {
+      "id": "2025-nft-oracle-50m",
       "year": "2025",
       "amount_usd": "$50M",
       "category": "NFT",
@@ -209,6 +233,7 @@
       "description": "NFT prices manipulated, resulting in $50M liquidations."
     },
     {
+      "id": "2025-gaming-phishing-120m",
       "year": "2025",
       "amount_usd": "$120M",
       "category": "Gaming",
