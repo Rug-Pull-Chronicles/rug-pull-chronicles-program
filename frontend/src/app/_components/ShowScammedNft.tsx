@@ -2,6 +2,10 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useCustomConnection } from "@/providers/ConnectionProvider";
+import { PublicKey } from "@solana/web3.js";
+import { mintSNFT } from "@/lib/blockchain/mintScammedNft";
 
 const placeholderNfts = [
   {
@@ -23,9 +27,51 @@ const placeholderNfts = [
 
 function ShowScammedNft() {
   const [selectedNft, setSelectedNft] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [txSuccess, setTxSuccess] = useState<boolean>(false);
+
+  const wallet = useWallet();
+  const { connectionToUse } = useCustomConnection();
 
   const handleSelectNft = (id: number) => {
     setSelectedNft(id);
+    setError(null);
+    setTxSuccess(false);
+  };
+
+  const handleMintNft = async () => {
+    if (!selectedNft) return;
+
+    const nft = placeholderNfts.find((nft) => nft.id === selectedNft);
+    if (!nft) return;
+
+    // Collection address - this should be configured properly for your app
+    // This is just a placeholder
+    const collectionAddress = new PublicKey(
+      "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+    );
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await mintSNFT(
+        wallet,
+        connectionToUse,
+        collectionAddress,
+        nft.name,
+        `${nft.name} Rugged` // this should be uri
+      );
+
+      console.log("Minting result:", result);
+      setTxSuccess(true);
+    } catch (err: any) {
+      console.error("Error minting NFT:", err);
+      setError(err.message || "Failed to mint NFT");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -70,9 +116,23 @@ function ShowScammedNft() {
 
       {selectedNft && (
         <div className="mt-6 text-center">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            Continue with selected NFT
+          <button
+            className={`px-4 py-2 bg-blue-600 text-white rounded-md ${
+              isLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-blue-700"
+            }`}
+            onClick={handleMintNft}
+            disabled={isLoading}
+          >
+            {isLoading ? "Processing..." : "Continue with selected NFT"}
           </button>
+
+          {error && <div className="mt-2 text-red-500 text-sm">{error}</div>}
+
+          {txSuccess && (
+            <div className="mt-2 text-green-500 text-sm">
+              NFT minted successfully!
+            </div>
+          )}
         </div>
       )}
     </div>
