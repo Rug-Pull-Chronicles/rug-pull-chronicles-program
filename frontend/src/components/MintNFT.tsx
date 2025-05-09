@@ -1,10 +1,11 @@
 "use client";
 
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useState } from "react";
-import { mintStandardNFT } from "@/lib/program";
 import { PublicKey } from "@solana/web3.js";
-import { useCustomConnection } from "@/providers/ConnectionProvider";
+import { uploadMetadata } from "@/lib/blockchain/uploadMetadata";
+import { generateImage } from "@/lib/generateImage";
+import { mintStandardNFT } from "@/lib/program";
 
 const STANDARD_COLLECTION = process.env.NEXT_PUBLIC_STANDARD_COLLECTION;
 const SCAMMED_COLLECTION = process.env.NEXT_PUBLIC_SCAMMED_COLLECTION;
@@ -27,7 +28,7 @@ export default function MintNFT({
   description,
 }: MintNFTProps) {
   const wallet = useWallet();
-  const { connectionToUse } = useCustomConnection();
+  const connectionToUse = useConnection();
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -37,7 +38,6 @@ export default function MintNFT({
     nftAddress: string;
   } | null>(null);
 
-  const [nftUri, setNftUri] = useState("https://example.com/metadata.json");
   const [collectionAddress, setCollectionAddress] =
     useState(STANDARD_COLLECTION);
 
@@ -66,13 +66,31 @@ export default function MintNFT({
         throw new Error("Invalid collection address");
       }
 
+      const imageFile = await generateImage({
+        headline: title,
+        type_of_attack: typeOfAttack,
+        category,
+        amount_usd: amount,
+        year: year.toString(),
+      });
+
+      console.log("imageFile", imageFile);
+
+      // const nftUri = await uploadMetadata(
+      //   {
+      //     name: title,
+      //     description: description,
+      //   },
+      //   imageFile
+      // );
+
       // Use the connection from our provider
       const result = await mintStandardNFT(
         wallet,
-        connectionToUse,
+        connectionToUse.connection,
         pubkey,
         title,
-        nftUri,
+        "https://arweave.net/123",
         year.toString(),
         amount,
         category,
@@ -90,6 +108,42 @@ export default function MintNFT({
     }
   };
 
+  // Usage example
+  async function example() {
+    // Load your wallet JSON file
+    const metadata = {
+      name: "NFT test",
+      description: "This is my NFT with permanent storage on Arweave",
+      attributes: [{ trait_type: "Collection", value: "Demo" }],
+    };
+
+    const minimalPngBuffer = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+      0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4, 0x89, 0x00, 0x00, 0x00,
+      0x0a, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9c, 0x63, 0x00, 0x01, 0x00, 0x00,
+      0x05, 0x00, 0x01, 0x0d, 0x0a, 0x2d, 0xb4, 0x00, 0x00, 0x00, 0x00, 0x49,
+      0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+    ]);
+
+    try {
+      const { metadataUri, imageUri } = await uploadMetadata(
+        metadata,
+        minimalPngBuffer,
+        "image/png"
+      );
+
+      console.log("Image uploaded to:", imageUri);
+      console.log("Metadata uploaded to:", metadataUri);
+
+      // Return the metadata URI to your Solana program
+      return metadataUri;
+    } catch (error) {
+      console.error("Upload failed:", error);
+      throw error;
+    }
+  }
+
   return (
     <div className="bg-black/90 rounded-lg p-6 max-w-xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -100,6 +154,7 @@ export default function MintNFT({
 
       <div className="space-y-4">
         <div>
+          <button onClick={example}>Example</button>
           <label className="block text-sm font-medium text-gray-300 mb-1">
             Collection Address
           </label>
