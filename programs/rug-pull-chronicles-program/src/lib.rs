@@ -16,17 +16,13 @@ use instructions::mint_standard_nft::*;
 use instructions::thaw_asset::*;
 use instructions::update_config::*;
 
-declare_id!("EPBUpnJA1ybxzw8f4o1Fj8UXUtTPpcnGpqBq6gZfM7Y1");
+declare_id!("Fhpi7Xfc6eYZxy5ENLeW4vmRbkWfNZpeFC4Btiqf7sR8");
 
 #[program]
 pub mod rug_pull_chronicles_program {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>, seed: u64, bumps: BumpSeeds) -> Result<()> {
-        msg!(
-            "Initializing Rug Pull Chronicles Program: {:?}",
-            ctx.program_id
-        );
         ctx.accounts.initialize(seed, &bumps)
     }
 

@@ -17,22 +17,12 @@ impl<'info> UpdateConfig<'info> {
     pub fn update_collection(&mut self, collection_address: Pubkey) -> Result<()> {
         // Update the config with the collection address
         self.config.standard_collection = collection_address;
-
-        msg!(
-            "Updated config with standard collection: {}",
-            collection_address
-        );
         Ok(())
     }
 
     pub fn update_scammed_collection(&mut self, collection_address: Pubkey) -> Result<()> {
         // Update the config with the rugged collection address
         self.config.scammed_collection = collection_address;
-
-        msg!(
-            "Updated config with scammed collection: {}",
-            collection_address
-        );
         Ok(())
     }
 
@@ -59,11 +49,6 @@ impl<'info> UpdateConfig<'info> {
         self.config.treasury_fee_percent = treasury_fee_percent;
         self.config.antiscam_fee_percent = antiscam_fee_percent;
 
-        msg!("Updated fee settings:");
-        msg!("Mint fee: {} basis points", mint_fee_basis_points);
-        msg!("Treasury fee: {}%", treasury_fee_percent);
-        msg!("Anti-scam treasury fee: {}%", antiscam_fee_percent);
-
         Ok(())
     }
 
@@ -77,24 +62,12 @@ impl<'info> UpdateConfig<'info> {
         // Update the minimum payment
         self.config.minimum_payment = minimum_payment;
 
-        msg!("Updated minimum payment: {} lamports", minimum_payment);
-
         Ok(())
     }
 
     pub fn toggle_paused(&mut self) -> Result<()> {
         // Toggle the paused state
         self.config.paused = !self.config.paused;
-
-        msg!(
-            "Program {} state: {}",
-            if self.config.paused {
-                "paused"
-            } else {
-                "unpaused"
-            },
-            self.config.paused
-        );
 
         Ok(())
     }

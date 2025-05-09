@@ -127,8 +127,6 @@ impl<'info> MintScammedNft<'info> {
             antiscam_amount,
         )?;
 
-        msg!("Fees paid successfully");
-
         // Get the account infos first
         let collection_account = &self.scammed_collection;
         let payer_account = &self.user.to_account_info();
@@ -161,10 +159,13 @@ impl<'info> MintScammedNft<'info> {
             attribute_list: vec![
                 // Scam details
                 Attribute {
+                    key: "id".to_string(),
+                    value: (self.config.total_minted_scammed + 1).to_string(),
+                },
+                Attribute {
                     key: "scam_details".to_string(),
                     value: scam_details,
                 },
-                // Minting metadata
                 Attribute {
                     key: "minted_by".to_string(),
                     value: self.user.key().to_string(),
@@ -195,11 +196,6 @@ impl<'info> MintScammedNft<'info> {
             .total_minted_scammed
             .checked_add(1)
             .ok_or(ProgramError::ArithmeticOverflow)?;
-
-        msg!(
-            "Scammed NFT minted successfully. Total minted: {}",
-            self.config.total_minted_scammed
-        );
 
         Ok(())
     }

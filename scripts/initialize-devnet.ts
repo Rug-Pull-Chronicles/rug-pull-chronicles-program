@@ -6,10 +6,11 @@ import path from "path";
 const IDL = require("../target/idl/rug_pull_chronicles_program.json");
 
 // Program ID - must match the one in Anchor.toml
-const PROGRAM_ID = new PublicKey("6cfjRrqry3MFPH9L7r2A44iCnCuoin6dauAwv1xa1Sc9");
+const PROGRAM_ID = new PublicKey("Fhpi7Xfc6eYZxy5ENLeW4vmRbkWfNZpeFC4Btiqf7sR8");
 
-// Use default seed for consistent PDAs
-const SEED = new anchor.BN(9876);
+// Use a random seed to avoid conflicts with existing config
+const SEED = new anchor.BN(Math.floor(Math.random() * 1000000));
+console.log(`Using seed: ${SEED.toString()} - SAVE THIS VALUE for collection creation!`);
 
 async function main() {
     try {

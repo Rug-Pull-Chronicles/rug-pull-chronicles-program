@@ -1,379 +1,242 @@
 # Rug Pull Chronicles
 
+A Solana program that enables the creation and minting of NFTs documenting cryptocurrency scams and rug pulls, contributing to anti-scam awareness and education.
+
+## Program Overview
 
-# Security enhancements
+Rug Pull Chronicles allows users to:
+1. Create and manage collections of scam-related NFTs
+2. Mint "standard" NFTs with detailed scam attributes
+3. Mint "scammed" NFTs with comprehensive scam documentation
+4. Generate fees that are split between platform operations and anti-scam initiatives
+5. Apply Metaplex's features including Master Editions and Freeze Delegate plugins
+
+**Program ID:** `Fhpi7Xfc6eYZxy5ENLeW4vmRbkWfNZpeFC4Btiqf7sR8`
 
-## Security Issues
+## Technical Stack
+
+- Solana Blockchain (v1.18.8)
+- Anchor Framework (v0.30.1)
+- Rust Programming Language (v1.86.0)
+- Metaplex MPL-Core (for NFT creation and management)
+- TypeScript/JavaScript (for client integration and testing)
+
+## Architecture
+
+### Core Account Structure
+
+1. **Config Account**:
+   - Tracks program settings, treasury addresses, and collection information
+   - Stores fee rates, admin authority, and mint counters
+   - Includes circuit breaker (pause) functionality
+   - Maintains program version for future upgrades
 
-### 1. Missing Access Controls in Update Config
+2. **Collections**:
+   - Standard Collection (for regular NFTs documenting scams)
+   - Scammed Collection (for NFTs with specific scam details)
+   - Both support Metaplex Master Edition for limited supply
 
-In `update_config.rs`, there are no access control checks on who can update the configuration. The current implementation allows any signer to:
-- Update the standard collection address
-- Update the scammed collection address
-- Update fee settings
+3. **Treasury Accounts**:
+   - Main Treasury (operations): Receives a configurable portion of minting fees
+   - Anti-Scam Treasury: Receives the remaining portion for scam education initiatives
 
-**Issue**: Anyone can change the collection addresses or fee settings.
+4. **MintTracker PDAs**:
+   - Lightweight PDAs to prevent duplicate mints
+   - Uses the NFT mint address as seed
+   - Minimal storage footprint
 
-**Fix**: Add a constraint to verify the admin is an authorized account:
-```rust
-#[derive(Accounts)]
-pub struct UpdateConfig<'info> {
-    /// The admin that can update the config
-    #[account(constraint = admin.key() == some_admin_authority @ RuggedError::Unauthorized)]
-    pub admin: Signer<'info>,
-    // ...
-}
-```
+### Key Instructions
 
-### 2. No Admin Key Storage
+1. **Initialize**:
+   - Creates program config account with initial settings
+   - Sets up treasury PDAs and update authority PDA
 
-There's no record of who is authorized to update the configuration or collections.
+2. **Create Collections**:
+   - Creates Metaplex Core collections
+   - Supports Master Edition plugin for limited editions
+   - Updates config with collection addresses
 
-**Issue**: No way to properly implement access controls.
+3. **Mint NFTs**:
+   - `mint_standard_nft`: Creates NFTs with scam attributes (year, amount stolen, platform, attack type)
+   - `mint_scammed_nft`: Creates NFTs with detailed scam documentation
+   - Both collect fees split between treasuries
+   - Both include timestamp and minter data
 
-**Fix**: Add an admin field to the Config struct:
-```rust
-pub struct Config {
-    // ...existing fields
-    pub admin: Pubkey,
-    // ...
-}
-```
+4. **Administration**:
+   - Update fee settings
+   - Update minimum payment
+   - Toggle program pause state
+   - Add collection royalties
 
-And initialize it in the initialize function:
-```rust
-self.config.admin = self.admin.key();
-```
+5. **Security Operations**:
+   - Add freeze delegate to NFTs
+   - Freeze/thaw assets when needed
 
-### 3. Integer Overflow in Fee Calculations
+## Security Considerations
 
-The fee calculation in `fees.rs` could potentially overflow:
-```rust
-let fee_amount = minimum_payment.checked_mul(fee_rate).unwrap_or(u64::MAX) / 10_000;
-```
+The program implements several security enhancements:
 
-**Issue**: While `checked_mul` prevents panics, falling back to u64::MAX could lead to unexpected behavior if an overflow occurs.
+1. **Access Controls**:
+   - Admin-only configuration updates
+   - Proper authority verification for critical operations
 
-**Fix**: Use checked operations throughout and return an error on overflow:
-```rust
-let fee_amount = minimum_payment
-    .checked_mul(fee_rate)
-    .ok_or(ProgramError::ArithmeticOverflow)?
-    .checked_div(10_000)
-    .ok_or(ProgramError::ArithmeticOverflow)?;
-```
+2. **Duplicate NFT Prevention**:
+   - MintTracker PDAs ensure each NFT mint address is used only once
+   - Atomic transaction guarantees for mint operations
 
-### 4. Lack of Input Validation
+3. **Circuit Breaker Pattern**:
+   - Program-wide pause capability for emergency shutdown
+   - Admin-controlled toggle to resume operations
 
-For example, in `update_fee_settings`, you check if percentages add up to 100, but you don't validate `mint_fee_basis_points` to ensure it's within a reasonable range.
+4. **Edition Limits**:
+   - Master Edition support to enforce maximum NFT supply
+   - Supply verification during minting
 
-**Issue**: Extremely high mint fees could be set.
+5. **Asset Protection**:
+   - Freeze delegate integration for temporary asset locking
+   - Supports escrow-less staking, marketplace integrations
 
-**Fix**: Add validation for mint fees:
-```rust
-require!(
-    mint_fee_basis_points <= 10000, // 100% max
-    CustomError::InvalidFeeAmount
-);
-```
+6. **Fee Safeguards**:
+   - Input validation for fee percentages (must sum to 100%)
+   - Maximum fee rate checks (≤ 50%)
+   - Minimum payment threshold
+   - Safe arithmetic operations to prevent overflow
 
-### 5. No Checks on Mint Functions for Duplicate Collection Assets
+## Implementation Decisions
 
-In the `mint_standard_nft` and `mint_scammed_nft` functions, there's no check to prevent duplicate assets.
+### Why MintTracker PDAs?
+Rather than storing all NFT data on-chain, we use lightweight MintTracker PDAs that:
+- Serve as a flag to prevent duplicate minting
+- Minimize storage costs
+- Provide atomic validation within the same transaction
+- Complement Metaplex's off-chain metadata approach
 
-**Issue**: Multiple assets could be minted with the same metadata.
+### Why Separate Collections?
+We maintain two distinct collections to:
+- Differentiate between standard informational NFTs and specific scam documentation
+- Allow separate styling, royalties, and discovery
+- Provide clear categorization for marketplaces and wallets
 
-**Fix**: Consider implementing a uniqueness check or nonce mechanism.
+### Fee Structure Design
+The dual-treasury model:
+- Creates sustainable economics (operations treasury)
+- Directly supports anti-scam initiatives (anti-scam treasury)
+- Allows configurable fee distribution without redeployment
+- Maintains reasonable minting costs with minimum payment threshold
 
-### 6. No Record of Minted Assets
+## Setup and Deployment
 
-The program doesn't keep track of which assets have been minted.
+### Development Environment
 
-**Issue**: No way to enumerate or verify minted assets on-chain.
-
-**Fix**: Consider adding a mapping of minted assets and counts in your Config.
-
-### 7. Hardcoded Minimum Payment
-
-The fee calculation uses a hardcoded 1 SOL minimum payment.
-
-**Issue**: This value can't be adjusted without updating the code.
-
-**Fix**: Store the minimum payment value in the Config.
-
-### 8. No Time-Based Controls or Circuit Breakers
-
-The program lacks mechanisms to pause functionality in case of emergencies.
-
-**Issue**: If a vulnerability is discovered, there's no way to pause minting.
-
-**Fix**: Add a pause flag to the Config and checks in critical functions.
-
-### 9. Collection Creation Without Checks
-
-Anyone can create a collection with the `create_collection` instruction.
-
-**Issue**: There's no verification that the collection creator is authorized.
-
-**Fix**: Add a constraint to verify the payer is authorized.
-
-### 10. Limited Error Handling
-
-The error handling in the program is minimal, with only a few error types defined.
-
-**Issue**: This can make it harder to debug issues and provide clear feedback.
-
-**Fix**: Expand error types to cover more specific failure cases.
-
-## Recommendations
-
-1. **Implement Access Controls**: Create a proper admin system with the admin Pubkey stored in Config.
-
-2. **Add Collection Metadata Validation**: Validate the metadata provided for NFTs.
-
-3. **Implement a Circuit Breaker**: Add a mechanism to pause functions in emergencies.
-
-4. **Add Program Version**: Store a version number in Config to help with upgrades.
-
-5. **Enhanced Logging**: Add more detailed logging for important state changes.
-
-6. **More Comprehensive Error Types**: Expand error types for better diagnostics.
-
-7. **Consider Fee Recipient Changes**: Add a mechanism to update the fee recipients.
-
-8. **Security Tests**: Add specific tests for security-related functionality.
-
-The most critical issue is the lack of access controls in update functions, which could allow anyone to change your program's configuration, potentially redirecting fees or replacing collections.
-
-
-A Solana program for creating and managing NFTs related to crypto scams ("rug pulls"). This project allows users to mint NFTs documenting notable crypto scams and contributes to anti-scam awareness.
-
-## Project Overview
-
-Rug Pull Chronicles is a Solana-based NFT platform that:
-
-1. Creates collections of NFTs documenting crypto scams
-2. Enables minting of standard NFTs with detailed scam attributes
-3. Allows minting of special "scammed" NFTs with specific scam details
-4. Implements royalties and fee mechanisms that contribute to anti-scam initiatives
-5. Leverages Metaplex's MPL-Core for NFT creation and management
-
-## Core Components
-
-### Smart Contract Architecture
-
-- **Config**: Central configuration storing collection addresses, treasury accounts, and fee settings
-- **Collections**: Two separate NFT collections - standard and scammed
-- **Fees**: Split between platform treasury and anti-scam initiatives
-- **Metaplex Integration**: Uses MPL-Core for NFT operations
-
-### Key Features
-
-- **Standard NFT Minting**: Create NFTs with scam attributes (year, amount stolen, platform, attack type)
-- **Scammed NFT Minting**: Special NFTs with detailed scam documentation
-- **Collection Management**: Create and configure NFT collections with royalties
-- **Treasury Management**: Split fees between operations and anti-scam initiatives
-
-## Getting Started
-
-### Prerequisites
-
-This project has specific version requirements:
-
-- **Solana CLI**: Version 1.18.8 (compatibility with MPL-Core)
-- **Rust**: Version 1.86.0
-- **Anchor CLI**: Version 0.30.1
-
-### Environment Setup
-
-1. Install Rust 1.86.0:
 ```bash
+# Install Rust 1.86.0
 rustup install 1.86.0
 rustup default 1.86.0
-```
 
-2. Install Solana CLI 1.18.8:
-```bash
+# Install Solana CLI 1.18.8
 sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.8/install)"
 echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
-```
 
-3. Create Solana wallet:
-```bash
+# Create a Solana wallet if needed
 solana-keygen new
 ```
 
-### Project Setup
+### Build and Deploy
 
-1. Clone the repository:
 ```bash
-git clone https://github.com/YourUsername/rug-pull-chronicles-program.git
+# Clone and enter the repository
+git clone https://github.com/yourusername/rug-pull-chronicles-program.git
 cd rug-pull-chronicles-program
-```
 
-2. Install dependencies:
-```bash
+# Install dependencies
 yarn install
-```
 
-3. Build the program:
-```bash
+# Build the program
 anchor build
+
+# Deploy to devnet
+anchor deploy --provider.cluster devnet
+
+# Initialize the program with a seed value
+npx ts-node scripts/initialize-devnet.ts 123456
+
+# Create collections
+npx ts-node scripts/create-collections.ts 123456
 ```
 
-### Running Tests
+### Testing
 
-1. First, dump the MPL Core program from mainnet:
-```bash
-solana program dump -u https://api.mainnet-beta.solana.com CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d target/deploy/mpl_core.so
-```
+The program includes a comprehensive test suite covering:
+- Collection creation and management
+- NFT minting with various attributes
+- Fee calculations and treasury distribution
+- Security aspects (access control, pause functionality)
+- Edge cases (duplicate prevention, invalid inputs)
 
-2. Start a validator in a separate terminal:
-```bash
-COPYFILE_DISABLE=1 solana-test-validator --bpf-program CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d target/deploy/mpl_core.so --reset
-```
+To run tests:
 
-3. Run the tests without starting another validator:
 ```bash
+# First, import the MPL Core program
+solana program dump -u mainnet-beta CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d target/deploy/mpl_core.so
+
+# Start a test validator with MPL Core
+solana-test-validator --bpf-program CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d target/deploy/mpl_core.so --reset
+
+# Run the tests (in another terminal)
 anchor test --skip-local-validator
 ```
 
-### Deployment
+## Code Structure
 
-1. Build the program:
-```bash
-anchor build
+```
+rug-pull-chronicles-program/
+├── programs/
+│   └── rug-pull-chronicles-program/
+│       ├── src/
+│       │   ├── instructions/
+│       │   │   ├── add_collection_royalties.rs
+│       │   │   ├── add_freeze_delegate.rs
+│       │   │   ├── create_collection.rs
+│       │   │   ├── freeze_asset.rs
+│       │   │   ├── initialize.rs
+│       │   │   ├── mint_scammed_nft.rs
+│       │   │   ├── mint_standard_nft.rs
+│       │   │   ├── mod.rs
+│       │   │   ├── thaw_asset.rs
+│       │   │   ├── toggle_paused.rs
+│       │   │   ├── update_config_collection.rs
+│       │   │   ├── update_fee_settings.rs
+│       │   │   └── update_minimum_payment.rs
+│       │   ├── state/
+│       │   │   ├── config.rs
+│       │   │   ├── mint_tracker.rs
+│       │   │   ├── mod.rs
+│       │   │   └── rugged_nft.rs
+│       │   ├── utils/
+│       │   │   ├── fees.rs
+│       │   │   └── mod.rs
+│       │   ├── error.rs
+│       │   └── lib.rs
+├── scripts/
+│   ├── create-collections.ts
+│   └── initialize-devnet.ts
+├── tests/
+│   └── rug-pull-chronicles-program.ts
+├── Anchor.toml
+└── package.json
 ```
 
-2. Get your program ID:
-```bash
-solana address -k target/deploy/rug_pull_chronicles_program-keypair.json
-```
+## Future Improvements
 
-3. Update the program ID in:
-   - `programs/rug-pull-chronicles-program/src/lib.rs`
-   - `Anchor.toml`
+1. **Frontend Integration**: Create a user-friendly interface for minting and viewing NFTs
+2. **Enhanced Metadata**: Support additional scam details and recovery resources
+3. **DAO Governance**: Move admin control to a community-governed DAO
+4. **Analytics Dashboard**: Track scam types, amounts, and trends over time
+5. **Recovery Resources**: Link NFTs to resources for scam victims
 
-4. Deploy to devnet:
-```bash
-anchor deploy --provider.cluster devnet
-```
+## Known Issues and Limitations
 
-5. Upload the IDL:
-```bash
-anchor idl init --filepath target/idl/rug_pull_chronicles_program.json YOUR_PROGRAM_ID
-```
-
-## Program Flow
-
-1. Initialize program with configuration
-2. Create standard and scammed NFT collections
-3. Set up royalties for collections
-4. Mint standard NFTs with scam attributes
-5. Mint scammed NFTs with detailed scam information
-6. Collect and distribute fees between treasuries
-
-## Troubleshooting
-
-If you encounter issues with Rust dependencies, try:
-
-```bash
-cargo update solana-program@2.2.1 --precise 1.18.8
-```
-
-For problems with proc-macro2 errors, add this to your Cargo.toml:
-```toml
-proc-macro2 = "=1.0.94"
-```
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Security Improvements
-
-The following security improvements have been implemented to enhance the security and reliability of the program:
-
-### 1. Duplicate NFT Prevention
-- Added a lightweight `MintTracker` PDA that acts as a flag to prevent duplicate NFT minting
-- Each mint operation creates a PDA with the mint address as a seed but stores minimal data (just a boolean flag)
-- This approach prevents duplicates while avoiding redundant data storage
-
-#### Why MintTracker is Necessary
-The MintTracker serves multiple critical functions:
-- **Explicit Validation**: Without it, there's no built-in mechanism in Solana or Metaplex that prevents trying to create multiple NFTs with the same mint address
-- **Transaction Atomicity**: Ensures all program operations (fee collection, mint tracking) are atomic
-- **Idempotency Protection**: Prevents double-minting even if a user accidentally submits the same transaction multiple times
-
-### 2. Freeze Delegate Plugin Integration
-The program now supports the Metaplex Core Freeze Delegate plugin for NFTs, providing enhanced security and flexibility:
-
-#### Key Features
-- **Asset Freezing**: Ability to temporarily freeze NFTs to prevent transfers
-- **Flexible Delegation**: Can assign freeze authority to a specific delegate address or keep owner-managed
-- **Escrow-less Security**: Perfect for implementing escrow-less staking, marketplaces, and in-game item locking
-
-#### Use Cases
-- **Escrow-less Staking**: Freeze NFTs while they are staked without transferring ownership
-- **Marketplace Security**: Lock NFTs during listing periods without transferring to an escrow
-- **Game Mechanics**: Temporarily lock in-game NFT items during gameplay or tournaments
-- **Rental Systems**: Enable NFT renting while preventing unauthorized transfers
-- **Collateral Management**: Secure NFTs used as collateral in lending protocols
-
-#### Implementation
-The program provides three key instructions for managing freezable assets:
-- `add_freeze_delegate`: Add the freeze plugin to an NFT with optional delegate address
-- `freeze_asset`: Freeze an NFT to prevent transfers (must be called by the delegate)
-- `thaw_asset`: Unfreeze an NFT to restore transfer capability
-
-See the [Metaplex Freeze Delegate documentation](https://developers.metaplex.com/core/plugins/freeze-delegate) for more details on the underlying plugin implementation.
-
-### 3. Asset Tracking and Metadata
-- Added counters to the Config account to track total minted NFTs:
-  - `total_minted_standard`: Tracks the total number of standard NFTs minted
-  - `total_minted_scammed`: Tracks the total number of scammed NFTs minted
-- Comprehensive metadata about each NFT is stored directly in the NFT's attributes, including:
-  - All scam-specific details (year, amount, category, type)
-  - Minting metadata (minter address, timestamp)
-- This approach leverages the existing Metaplex NFT structure to store information efficiently
-
-### 4. Configurable Minimum Payment
-- The minimum payment value (previously hardcoded) is now configurable via the Config account
-- Added the `update_minimum_payment` instruction to allow admins to modify this value
-- Includes validation to ensure the minimum payment is not set too low (minimum 0.1 SOL)
-
-### 5. Circuit Breaker / Pause Functionality
-- Added a pause flag to the Config account that can be toggled by the admin
-- Added the `toggle_paused` instruction to turn the pause state on or off
-- All mint operations check the pause state before execution
-- This provides emergency shutdown capability in case of vulnerabilities
-
-### 6. Expanded Error Handling
-- Added more specific error types for better error handling and user feedback:
-  - `InvalidMinimumPayment`: Enforces minimum payment constraints
-  - `ProgramPaused`: Returned when attempting operations while paused
-  - `DuplicateNFTMint`: Used for duplicate NFT detection
-  - `ArithmeticOverflow`: More precise overflow error handling
-  - `OperationNotAllowedWhenPaused`: Clear indication that paused state prevents operations
-
-### 7. Program Versioning
-- Added a version field to the Config account to track program versions
-- This facilitates future upgrades and migrations
-- Initialized at version 1, with the ability to check and upgrade in the future
-
-### 8. Master Edition Support
-- Collections now support the Metaplex Master Edition plugin, allowing for limited edition NFTs
-- Integrated Master Edition parameters directly into the collection creation process
-  - `max_supply`: Optional parameter to set the maximum number of editions
-  - `edition_name`: Optional custom name for the Master Edition
-  - `edition_uri`: Optional custom URI for Master Edition metadata
-- Each collection tracks whether it has a Master Edition and its max supply in the Config account
-
-### 9. Improved Memory Safety with Rust Borrowing Rules
-- Refactored the collection creation process to properly handle Rust's borrowing rules
-- Implemented a step-by-step builder pattern that safely constructs complex instructions
-- Fixed temporary value lifetime issues that could cause compilation errors
-- Enhanced test suite to match the correct IDL structure
-
-These improvements significantly strengthen the security posture of the application by adding circuit breakers, preventing duplicate NFT minting, enhancing error handling, making critical values configurable rather than hardcoded, and ensuring collections can have limited edition capabilities.
+1. The program currently relies on Metaplex's original Attributes plugin, which may evolve in the future
+2. Treasury funds require manual distribution to anti-scam initiatives
+3. Royalties enforcement depends on marketplace compliance with the Metaplex standard

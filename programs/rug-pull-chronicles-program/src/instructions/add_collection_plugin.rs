@@ -68,22 +68,6 @@ impl<'info> AddCollectionPlugin<'info> {
             })
             .collect::<Vec<Creator>>();
 
-        // Log what we're adding
-        msg!(
-            "Adding collection royalties: {}% with {} creators",
-            args.basis_points / 100,
-            creators.len()
-        );
-
-        for (i, creator) in creators.iter().enumerate() {
-            msg!(
-                "Creator {}: {} with {}%",
-                i + 1,
-                creator.address,
-                creator.percentage
-            );
-        }
-
         // Create the plugin add CPI
         AddCollectionPluginV1CpiBuilder::new(&self.mpl_core_program.to_account_info())
             .collection(&self.collection.to_account_info())
@@ -96,8 +80,6 @@ impl<'info> AddCollectionPlugin<'info> {
                 rule_set: RuleSet::None,
             }))
             .invoke_signed(&[auth_seeds])?;
-
-        msg!("Collection royalties added successfully");
         Ok(())
     }
 }

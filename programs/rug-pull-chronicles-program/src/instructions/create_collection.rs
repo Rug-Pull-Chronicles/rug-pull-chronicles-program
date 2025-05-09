@@ -45,11 +45,6 @@ impl<'info> CreateCollection<'info> {
                 uri: args.edition_uri,
             };
 
-            msg!("Adding Master Edition plugin to collection");
-            if let Some(max_supply) = args.max_supply {
-                msg!("Max supply set to: {}", max_supply);
-            }
-
             // Create a vector with the Master Edition plugin using PluginAuthorityPair
             vec![PluginAuthorityPair {
                 plugin: Plugin::MasterEdition(master_edition),
@@ -97,15 +92,11 @@ impl<'info> CreateCollection<'info> {
             if self.config.standard_collection == self.collection.key() {
                 self.config.standard_collection_has_master_edition = true;
                 self.config.standard_collection_max_supply = args.max_supply;
-                msg!("Updated config: Standard collection now has Master Edition plugin");
             } else if self.config.scammed_collection == self.collection.key() {
                 self.config.scammed_collection_has_master_edition = true;
                 self.config.scammed_collection_max_supply = args.max_supply;
-                msg!("Updated config: Scammed collection now has Master Edition plugin");
             }
         }
-
-        msg!("Collection created successfully: {}", self.collection.key());
 
         // Return success
         Ok(())

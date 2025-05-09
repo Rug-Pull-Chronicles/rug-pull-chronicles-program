@@ -5,16 +5,16 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-rug_pull_chronicles_program = "EPBUpnJA1ybxzw8f4o1Fj8UXUtTPpcnGpqBq6gZfM7Y1"
+rug_pull_chronicles_program = "Fhpi7Xfc6eYZxy5ENLeW4vmRbkWfNZpeFC4Btiqf7sR8"
 
 [programs.devnet]
-rug_pull_chronicles_program = "EPBUpnJA1ybxzw8f4o1Fj8UXUtTPpcnGpqBq6gZfM7Y1"
+rug_pull_chronicles_program = "Fhpi7Xfc6eYZxy5ENLeW4vmRbkWfNZpeFC4Btiqf7sR8"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "Turbin3-wallet.json"
 
 [scripts]

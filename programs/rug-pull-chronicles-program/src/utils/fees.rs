@@ -25,10 +25,7 @@ pub fn calculate_mint_fees(config: &Account<Config>) -> Result<(u64, u64)> {
         .checked_div(100)
         .ok_or(ProgramError::ArithmeticOverflow)?;
 
-    // Log the fee breakdown
-    msg!("Minting fee: {} lamports", fee_amount);
-    msg!("Treasury fee: {} lamports", treasury_amount);
-    msg!("Anti-scam fee: {} lamports", antiscam_amount);
+    // Remove all fee logging
 
     Ok((treasury_amount, antiscam_amount))
 }

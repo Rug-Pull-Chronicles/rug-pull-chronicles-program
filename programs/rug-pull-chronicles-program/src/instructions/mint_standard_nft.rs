@@ -130,8 +130,6 @@ impl<'info> MintStandardNft<'info> {
             antiscam_amount,
         )?;
 
-        msg!("Fees paid successfully");
-
         // Get the account infos first
         let collection_account = &self.standard_collection;
         let payer_account = &self.user.to_account_info();
@@ -164,6 +162,10 @@ impl<'info> MintStandardNft<'info> {
             attribute_list: vec![
                 // Scam details
                 Attribute {
+                    key: "id".to_string(),
+                    value: (self.config.total_minted_standard + 1).to_string(),
+                },
+                Attribute {
                     key: "scam_year".to_string(),
                     value: scam_year,
                 },
@@ -179,7 +181,6 @@ impl<'info> MintStandardNft<'info> {
                     key: "type_of_attack".to_string(),
                     value: type_of_attack,
                 },
-                // Minting metadata
                 Attribute {
                     key: "minted_by".to_string(),
                     value: self.user.key().to_string(),
@@ -210,11 +211,6 @@ impl<'info> MintStandardNft<'info> {
             .total_minted_standard
             .checked_add(1)
             .ok_or(ProgramError::ArithmeticOverflow)?;
-
-        msg!(
-            "Standard NFT minted successfully. Total minted: {}",
-            self.config.total_minted_standard
-        );
 
         Ok(())
     }
