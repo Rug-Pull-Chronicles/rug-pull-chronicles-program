@@ -47,8 +47,13 @@ function ShowScammedNft() {
           >
             <div className="aspect-square relative mb-3 overflow-hidden rounded-md">
               <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <img src={nft.image} alt={nft.name} className="object-cover" />
-                <span className="text-gray-500">NFT {nft.id}</span>
+                <Image
+                  src={nft.image}
+                  width={250}
+                  height={250}
+                  alt={nft.name}
+                  className="object-cover"
+                />
               </div>
             </div>
 
