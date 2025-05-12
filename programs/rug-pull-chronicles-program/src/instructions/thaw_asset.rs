@@ -37,8 +37,6 @@ pub struct ThawAsset<'info> {
 
 impl<'info> ThawAsset<'info> {
     pub fn thaw_asset(&self) -> Result<()> {
-        msg!("Thawing asset: {}", self.asset.key());
-
         // Create the thaw asset CPI - we update the FreezeDelegate plugin to set frozen = false
         UpdatePluginV1CpiBuilder::new(&self.mpl_core_program.to_account_info())
             .asset(&self.asset.to_account_info())
@@ -49,7 +47,6 @@ impl<'info> ThawAsset<'info> {
             .plugin(Plugin::FreezeDelegate(FreezeDelegate { frozen: false }))
             .invoke()?;
 
-        msg!("Asset thawed successfully");
         Ok(())
     }
 }

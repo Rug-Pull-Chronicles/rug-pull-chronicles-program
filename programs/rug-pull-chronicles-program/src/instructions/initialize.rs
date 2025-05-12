@@ -106,10 +106,6 @@ impl<'info> Initialize<'info> {
             scammed_collection_max_supply: scammed_max_supply,   // Limit to 50 editions
         });
 
-        msg!("Initialized with Master Edition support:");
-        msg!("  Standard Collection Max Supply: 100");
-        msg!("  Scammed Collection Max Supply: 50");
-
         Ok(())
     }
 }

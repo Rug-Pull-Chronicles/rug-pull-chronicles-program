@@ -59,18 +59,10 @@ impl<'info> AddFreezePlugin<'info> {
     pub fn add_freeze_delegate(&self, args: AddFreezePluginArgs) -> Result<()> {
         // Determine the authority type
         let authority = if let Some(delegate) = args.delegate {
-            msg!("Adding Freeze Delegate plugin with authority: {}", delegate);
             PluginAuthority::Address { address: delegate }
         } else {
-            msg!("Adding Freeze Delegate plugin with Owner authority");
             PluginAuthority::Owner
         };
-
-        // Log current state
-        msg!(
-            "Adding Freeze Delegate plugin. Initial frozen state: {}",
-            args.frozen
-        );
 
         // Create the plugin add CPI
         // For Owner Managed Plugins, we must use the owner as the authority, not the update_authority
@@ -86,7 +78,6 @@ impl<'info> AddFreezePlugin<'info> {
             .init_authority(authority)
             .invoke()?; // No need for signed, owner is already a signer
 
-        msg!("Freeze Delegate plugin added successfully");
         Ok(())
     }
 }

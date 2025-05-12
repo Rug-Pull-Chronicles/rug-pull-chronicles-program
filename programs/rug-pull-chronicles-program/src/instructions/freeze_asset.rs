@@ -37,19 +37,21 @@ pub struct FreezeAsset<'info> {
 
 impl<'info> FreezeAsset<'info> {
     pub fn freeze_asset(&self) -> Result<()> {
-        msg!("Freezing asset: {}", self.asset.key());
+        // Get the accounts
+        let freeze_delegate_program_account = &self.mpl_core_program.to_account_info();
+        let asset_account = &self.asset.to_account_info();
+        let delegate_account = &self.delegate.to_account_info();
 
-        // Create the freeze asset CPI - we update the FreezeDelegate plugin to set frozen = true
-        UpdatePluginV1CpiBuilder::new(&self.mpl_core_program.to_account_info())
-            .asset(&self.asset.to_account_info())
-            .authority(Some(&self.delegate.to_account_info()))
+        // Create and invoke the freeze instruction
+        UpdatePluginV1CpiBuilder::new(freeze_delegate_program_account)
+            .asset(asset_account)
+            .authority(Some(delegate_account))
             .collection(Some(&self.collection.to_account_info()))
-            .payer(&self.delegate.to_account_info())
+            .payer(delegate_account)
             .system_program(&self.system_program.to_account_info())
             .plugin(Plugin::FreezeDelegate(FreezeDelegate { frozen: true }))
             .invoke()?;
 
-        msg!("Asset frozen successfully");
         Ok(())
     }
 }
