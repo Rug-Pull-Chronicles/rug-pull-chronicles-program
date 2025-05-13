@@ -17,9 +17,8 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col p-6 lg:p-24">
+    <main className="flex flex-col p-6 bg-custom-beige/50 h-[calc(100vh-70px)]">
       <div>
-        <h1>TEST</h1>
         <button onClick={handleUploadMetadata}>Upload Metadata</button>
       </div>
       <div className="mt-8 flex-grow flex justify-center items-center">

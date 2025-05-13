@@ -42,14 +42,17 @@ export function SelectScam() {
     <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
       <div className="space-y-2">
         {traits && (
-          <form className="space-y-4">
+          <form className="flex flex-wrap justify-center gap-6 mb-8">
             {Object.entries(traits).map(([trait, options]) => (
-              <div key={trait}>
-                <label className="block mb-1 font-semibold">
+              <div
+                key={trait}
+                className="flex flex-col items-center min-w-[160px]"
+              >
+                <label className="mb-1 font-semibold text-sm capitalize tracking-wide">
                   {trait.replace(/_/g, " ")}
                 </label>
                 <select
-                  className="border rounded px-2 py-1"
+                  className="border px-3 py-2 w-full bg-white dark:bg-neutral-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   value={filters[trait] || ""}
                   onChange={(e) => handleChange(trait, e.target.value)}
                 >
@@ -66,18 +69,22 @@ export function SelectScam() {
         )}
 
         <div className="mt-6">
-          <h2 className="text-lg font-bold mb-2">Matching Scams</h2>
-          {filteredScams.length === 0 && <div>No scams found.</div>}
-          <ul className="space-y-2">
+          <h2 className="text-lg font-bold mb-4 text-center">Matching Scams</h2>
+          {filteredScams.length === 0 && (
+            <div className="text-gray-500 text-center">No scams found.</div>
+          )}
+          <ul className="space-y-3">
             {filteredScams.map((scam, idx) => (
               <li
                 key={idx}
-                className="border rounded p-3 text-left cursor-pointer hover:bg-neutral-400 dark:hover:bg-neutral-900"
+                className="border p-4 bg-white dark:bg-neutral-800 shadow hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer transition"
                 onClick={() => handleScamSelect(scam)}
               >
-                <div className="font-bold">{scam.headline}</div>
-                <div className="text-sm text-gray-600">{scam.description}</div>
-                <div className="text-xs mt-1">
+                <div className="font-bold text-base mb-1">{scam.headline}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                  {scam.description}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
                   <span>Year: {scam.year}</span> |{" "}
                   <span>Amount: {scam.amount_usd}</span> |{" "}
                   <span>Category: {scam.category}</span> |{" "}

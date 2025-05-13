@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 import { mintStandardCollectionNFT } from "../program";
 
-export const mintNFT = async (
+export const mintNft = async (
   wallet: any,
   connection: any,
   collectionAddress: PublicKey,
