@@ -1,9 +1,9 @@
 import { PublicKey } from "@solana/web3.js";
-import { mintScammedNFT } from "../program";
+import { mintScammedCollectionNFT } from "../program";
 
 const PROGRAM_ID = process.env.NEXT_PUBLIC_PROGRAM_ID;
 
-export const mintSNFT = async (
+export const mintScammedNft = async (
   wallet: any,
   connection: any,
   collectionAddress: PublicKey,
@@ -34,7 +34,7 @@ export const mintSNFT = async (
       new PublicKey(PROGRAM_ID as string)
     );
 
-    const result = await mintScammedNFT(
+    const result = await mintScammedCollectionNFT(
       wallet,
       connection,
       pubkey,

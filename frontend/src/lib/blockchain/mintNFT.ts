@@ -1,5 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
-import { mintStandardNFT } from "../program";
+import { mintStandardCollectionNFT } from "../program";
 
 export const mintNFT = async (
   wallet: any,
@@ -28,7 +28,7 @@ export const mintNFT = async (
       throw new Error("Invalid collection address");
     }
 
-    const result = await mintStandardNFT(
+    const result = await mintStandardCollectionNFT(
       wallet,
       connection,
       pubkey,

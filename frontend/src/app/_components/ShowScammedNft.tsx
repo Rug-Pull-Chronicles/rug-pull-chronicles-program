@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCustomConnection } from "@/providers/ConnectionProvider";
 import { PublicKey } from "@solana/web3.js";
-import { mintSNFT } from "@/lib/blockchain/mintScammedNft";
+import { mintScammedNft } from "@/lib/blockchain/mintScammedNft";
 
 const placeholderNfts = [
   {
@@ -58,7 +58,7 @@ function ShowScammedNft() {
     setError(null);
 
     try {
-      const result = await mintSNFT(
+      const result = await mintScammedNft(
         wallet,
         connectionToUse,
         collectionAddress,

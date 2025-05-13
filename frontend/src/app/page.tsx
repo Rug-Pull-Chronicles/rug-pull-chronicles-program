@@ -23,7 +23,7 @@ export default function Home() {
         <button onClick={handleUploadMetadata}>Upload Metadata</button>
       </div>
       <div className="mt-8 flex-grow flex justify-center items-center">
-        {publicKey ? <ShowScammedNft /> : <SelectScam />}
+        {!publicKey ? <ShowScammedNft /> : <SelectScam />}
       </div>
     </main>
   );
