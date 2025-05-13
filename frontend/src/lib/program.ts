@@ -12,7 +12,11 @@ const MPL_CORE_PROGRAM_ID = new PublicKey(
   "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
 );
 
-const DEFAULT_SEED = new BN(9876);
+const DEFAULT_SEED = new BN(process.env.NEXT_PUBLIC_SEED as string);
+
+if (!DEFAULT_SEED) {
+  throw new Error("NEXT_PUBLIC_SEED is not set");
+}
 
 export function getProgram(
   wallet: WalletContextState,
@@ -32,6 +36,10 @@ export function getProgram(
 
 // Compute relevant PDAs
 export const getPDAs = async (seed = DEFAULT_SEED) => {
+  if (!seed) {
+    throw new Error("Seed is not set");
+  }
+
   const seedBuffer = seed.toArrayLike(Buffer, "le", 8);
 
   const [configPDA] = PublicKey.findProgramAddressSync(
