@@ -1,6 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
 import { mintScammedNFT } from "../program";
 
+const PROGRAM_ID = process.env.NEXT_PUBLIC_PROGRAM_ID;
+
 export const mintSNFT = async (
   wallet: any,
   connection: any,
@@ -27,13 +29,18 @@ export const mintSNFT = async (
     // TODO: attributes for scammed nft is scam_details which is equal to
     // the (name of the nft + number) + "Rugged"
 
+    const [mintTrackerPDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("mint_tracker"), wallet.publicKey.toBuffer()],
+      new PublicKey(PROGRAM_ID as string)
+    );
+
     const result = await mintScammedNFT(
       wallet,
       connection,
       pubkey,
-      nftName,
-      nftUri,
-      "details"
+      "NFT Name", // nftName
+      "https://your-metadata-uri.com", // nftUri
+      "Scam details here"
     );
 
     return result;

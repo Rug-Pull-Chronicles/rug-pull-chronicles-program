@@ -25,6 +25,8 @@ const placeholderNfts = [
   },
 ];
 
+const SCAMMED_COLLECTION_ADDRESS = process.env.NEXT_PUBLIC_SCAMMED_COLLECTION;
+
 function ShowScammedNft() {
   const [selectedNft, setSelectedNft] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +51,7 @@ function ShowScammedNft() {
     // Collection address - this should be configured properly for your app
     // This is just a placeholder
     const collectionAddress = new PublicKey(
-      "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+      SCAMMED_COLLECTION_ADDRESS as string
     );
 
     setIsLoading(true);
