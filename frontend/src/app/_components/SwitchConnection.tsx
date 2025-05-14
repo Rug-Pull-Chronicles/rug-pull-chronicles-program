@@ -15,7 +15,7 @@ export default function SwitchConnection() {
         <div className="ml-4">
           <button
             onClick={() => connectToNetwork("devnet")}
-            className="px-3 py-1 bg-blue-700 text-white text-xs rounded hover:bg-blue-600"
+            className="px-3 py-1 bg-blue-700 text-white text-xs hover:bg-blue-600"
           >
             Connect to Devnet
           </button>

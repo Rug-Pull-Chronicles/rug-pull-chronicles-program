@@ -143,7 +143,7 @@ function MintPage() {
       <div className="mb-6 p-4">
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-xl font-bold text-gray-900">{headline}</h3>
-          <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded font-semibold">
+          <span className="bg-red-100 text-red-700 text-xs px-2 py-1 font-semibold">
             {amount_usd} LOST
           </span>
         </div>
@@ -151,21 +151,21 @@ function MintPage() {
         <p className="text-gray-700 mb-4">{description}</p>
 
         <div className="grid grid-cols-2 gap-2 text-sm mb-4">
-          <div className="bg-secondary-text/40 p-2 rounded">
+          <div className="bg-secondary-text/40 p-2">
             <span className="text-gray-500">Category:</span>
             <span className="text-gray-900 ml-1 font-medium">{category}</span>
           </div>
-          <div className="bg-secondary-text/40 p-2 rounded">
+          <div className="bg-secondary-text/40 p-2">
             <span className="text-gray-500">Attack Type:</span>
             <span className="text-gray-900 ml-1 font-medium">
               {type_of_attack}
             </span>
           </div>
-          <div className="bg-secondary-text/40 p-2 rounded">
+          <div className="bg-secondary-text/40 p-2">
             <span className="text-gray-500">Year:</span>
             <span className="text-gray-900 ml-1 font-medium">{year}</span>
           </div>
-          <div className="bg-secondary-text/40 p-2 rounded">
+          <div className="bg-secondary-text/40 p-2">
             <span className="text-gray-500">Date:</span>
             <span className="text-gray-900 ml-1 font-medium">
               {randomDate()}
@@ -173,9 +173,9 @@ function MintPage() {
           </div>
         </div>
 
-        <div className="bg-gray-50 p-3 rounded border border-gray-200 mb-4">
+        <div className="bg-gray-50 p-3 border border-gray-200 mb-4">
           <div className="flex items-center">
-            <div className="w-6 h-6 bg-red-400 rounded-full flex items-center justify-center mr-2">
+            <div className="w-6 h-6 bg-red-400-full flex items-center justify-center mr-2">
               <span className="text-white text-xs font-bold">R</span>
             </div>
             <h4 className="text-gray-900 text-sm font-bold">REKT News</h4>
@@ -204,7 +204,7 @@ function MintPage() {
               <img
                 src={generatedImageUrl}
                 alt="Generated NFT"
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover"
               />
             </div>
           </div>
@@ -215,7 +215,7 @@ function MintPage() {
         <button
           onClick={handleMint}
           disabled={loading || !wallet.publicKey}
-          className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
+          className={`w-full py-2 px-4 font-medium transition-colors ${
             !wallet.publicKey
               ? "bg-tertiary-text/40 text-tertiary-text cursor-not-allowed"
               : loading
@@ -232,7 +232,7 @@ function MintPage() {
       </div>
 
       {error && (
-        <div className="mt-4 p-3 bg-red-100 border border-red-200 rounded-md text-red-700">
+        <div className="mt-4 p-3 bg-red-100 border border-red-200 text-red-700">
           <p className="text-sm">{error}</p>
         </div>
       )}

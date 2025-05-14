@@ -39,11 +39,11 @@ function Gallery() {
             type="text"
             value={walletAddress}
             onChange={(e) => setWalletAddress(e.target.value)}
-            className="border px-3 py-2 rounded w-full"
+            className="border px-3 py-2 w-full"
           />
           <button
             onClick={() => fetchAssets(walletAddress)}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="bg-blue-500 text-white px-4 py-2"
             disabled={loading}
           >
             {loading ? "Loading..." : "Fetch NFTs"}
@@ -57,14 +57,14 @@ function Gallery() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {nfts.length > 0 ? (
             nfts.map((nft, index) => (
-              <div key={index} className="border rounded p-4">
+              <div key={index} className="border p-4">
                 <h2 className="font-bold">
                   {nft.name} - {nft.symbol}
                 </h2>
                 <img
                   src={nft.image}
                   alt={nft.name}
-                  className="w-full h-40 object-cover rounded"
+                  className="w-full h-40 object-cover"
                 />
                 <pre className="mt-2 text-xs overflow-auto max-h-40">
                   {JSON.stringify(nft.json, null, 2)}
