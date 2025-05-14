@@ -140,7 +140,7 @@ function MintPage() {
 
   return (
     <div className="min-h-[calc(100vh-83px)] flex items-center justify-center bg-custom-beige/50 flex flex-col px-16">
-      <div className="mb-6 rounded-lg p-4 bg-white shadow border border-gray-200">
+      <div className="mb-6 p-4">
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-xl font-bold text-gray-900">{headline}</h3>
           <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded font-semibold">
