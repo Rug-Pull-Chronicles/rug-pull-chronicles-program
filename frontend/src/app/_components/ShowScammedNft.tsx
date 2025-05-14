@@ -27,6 +27,7 @@ const placeholderNfts = [
 ];
 
 const SCAMMED_COLLECTION_ADDRESS = process.env.NEXT_PUBLIC_SCAMMED_COLLECTION;
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 function ShowScammedNft() {
   const [selectedNft, setSelectedNft] = useState<number | null>(null);
@@ -66,7 +67,7 @@ function ShowScammedNft() {
         connectionToUse,
         collectionAddress,
         nft.name,
-        `${nft.name} Rugged` // this should be uri
+        `${BASE_URL}/metadata/nft${nft.id}.json`
       );
 
       console.log("Minting result:", result);
