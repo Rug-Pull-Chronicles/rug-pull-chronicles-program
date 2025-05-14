@@ -1,80 +1,59 @@
 "use client";
 
-import React, { useState } from "react";
-import { fetchWalletNFTs } from "@/lib/blockchain/publicReadTest";
+import React, { useEffect, useState } from "react";
 
-interface NFT {
-  name: string;
-  symbol: string;
-  uri: string;
-  json: any;
-  image: string;
+interface NFTAttribute {
+  trait_type: string;
+  value: string;
+  count?: number;
+  percentage?: string;
+  price?: number;
+  currency?: string;
+}
+
+interface NFTMetadata {
+  attributes: NFTAttribute[];
 }
 
 function Gallery() {
-  const [nfts, setNfts] = useState<NFT[]>([]);
-  const [walletAddress, setWalletAddress] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [metadata, setMetadata] = useState<NFTMetadata | null>(null);
 
-  const fetchAssets = async (address: string) => {
-    setLoading(true);
-    try {
-      const assets = await fetchWalletNFTs(address);
-      setNfts(assets);
-    } catch (error) {
-      console.error("Error fetching NFTs:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    // Fetch metadata for NFT #1 from the public folder
+    fetch("/metadata/nft1.json")
+      .then((res) => res.json())
+      .then((data) => setMetadata(data));
+  }, []);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">NFT Gallery</h1>
-
-      <div className="mb-6">
-        <label className="block mb-2">Wallet Address:</label>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-            className="border px-3 py-2 w-full"
-          />
-          <button
-            onClick={() => fetchAssets(walletAddress)}
-            className="bg-blue-500 text-white px-4 py-2"
-            disabled={loading}
-          >
-            {loading ? "Loading..." : "Fetch NFTs"}
-          </button>
+    <div className="min-h-[calc(100vh-83px)] flex items-center justify-center bg-custom-beige/50 flex flex-col px-16">
+      <img
+        src="/images/nft-rugged-2.png"
+        alt="NFT Rugged #2"
+        className="w-full max-w-md h-auto shadow-lg mb-8 mt-6"
+      />
+      {metadata ? (
+        <div className="w-full max-w-xl shadow p-6 mb-6 bg-secondary-text/40">
+          <ul className="space-y-2">
+            {metadata.attributes.map((attr, idx) => (
+              <li key={idx} className="flex justify-between border-b pb-2">
+                <span className="font-medium space-mono-regular">
+                  {attr.trait_type}:
+                </span>
+                <span>
+                  {attr.value}
+                  {attr.percentage && (
+                    <span className="ml-2 text-gray-500 text-xs">
+                      ({attr.percentage})
+                    </span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
-
-      {loading ? (
-        <div>Loading NFTs...</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {nfts.length > 0 ? (
-            nfts.map((nft, index) => (
-              <div key={index} className="border p-4">
-                <h2 className="font-bold">
-                  {nft.name} - {nft.symbol}
-                </h2>
-                <img
-                  src={nft.image}
-                  alt={nft.name}
-                  className="w-full h-40 object-cover"
-                />
-                <pre className="mt-2 text-xs overflow-auto max-h-40">
-                  {JSON.stringify(nft.json, null, 2)}
-                </pre>
-              </div>
-            ))
-          ) : (
-            <div>No NFTs found for this wallet</div>
-          )}
-        </div>
+        <div>Loading metadata...</div>
       )}
     </div>
   );

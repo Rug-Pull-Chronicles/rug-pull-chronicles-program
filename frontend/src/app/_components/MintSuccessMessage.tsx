@@ -7,7 +7,7 @@ interface MintSuccessMessageProps {
 
 export function MintSuccessMessage({ result }: MintSuccessMessageProps) {
   return (
-    <div className="mt-4 p-4 bg-green-100 border border-green-200 rounded-md text-green-800">
+    <div className="mt-4 p-4 bg-green-100 border border-green-200 text-green-800">
       <h3 className="font-medium text-lg mb-2">NFT Minted Successfully!</h3>
       {result ? (
         <div className="space-y-2 text-sm">
