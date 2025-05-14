@@ -3,9 +3,13 @@ interface MintSuccessMessageProps {
     signature: string;
     nftAddress: string;
   } | null;
+  goToGallery?: boolean;
 }
 
-export function MintSuccessMessage({ result }: MintSuccessMessageProps) {
+export function MintSuccessMessage({
+  result,
+  goToGallery,
+}: MintSuccessMessageProps) {
   return (
     <div className="mt-4 p-4 bg-green-100 border border-green-200 text-green-800">
       <h3 className="font-medium text-lg mb-2">NFT Minted Successfully!</h3>
@@ -37,6 +41,16 @@ export function MintSuccessMessage({ result }: MintSuccessMessageProps) {
               View Transaction
             </a>
           </div>
+          {goToGallery && (
+            <div className="mt-4">
+              <a
+                href="/gallery"
+                className="inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+              >
+                Go to Gallery
+              </a>
+            </div>
+          )}
         </div>
       ) : (
         <p className="text-sm">

@@ -11,7 +11,7 @@ export default function Home() {
     <main className="flex flex-col p-6 bg-custom-beige/50 min-h-[calc(100vh-83px)]">
       <div className="mt-8 flex-grow flex justify-center items-center">
         {publicKey?.toBase58() !==
-        "9Pk3d5BS84A1REM7cwWa96xpdNuydCvsLn4C3vzw15V9" ? (
+        "FSEkJ8iHX6gfhAuNzeAirmycihZdw1mHbsbwfMuJPGMj" ? (
           <ShowScammedNft />
         ) : (
           <SelectScam />

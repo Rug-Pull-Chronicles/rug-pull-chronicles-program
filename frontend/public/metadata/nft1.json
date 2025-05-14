@@ -14,7 +14,7 @@
     },
     {
       "trait_type": "Type",
-      "value": "Dark",
+      "value": "Light",
       "count": 4600,
       "percentage": "46%",
       "price": 38.75,
@@ -22,39 +22,31 @@
     },
     {
       "trait_type": "Expression",
-      "value": "Serious",
+      "value": "Shocked",
       "count": 1200,
       "percentage": "12%",
       "price": 38.75,
       "currency": "SOL"
     },
     {
-      "trait_type": "Hat",
-      "value": "Fedora",
+      "trait_type": "Hair",
+      "value": "Buzzcut",
       "count": 25,
       "percentage": "0.25%",
       "price": 50.0,
       "currency": "SOL"
     },
     {
-      "trait_type": "Hair",
-      "value": "Short Black",
-      "count": 15,
-      "percentage": "0.15%",
-      "price": 50.0,
-      "currency": "SOL"
-    },
-    {
       "trait_type": "Eyes",
-      "value": "Open",
+      "value": "Blue",
       "count": 1400,
       "percentage": "14%",
       "price": 38.75,
       "currency": "SOL"
     },
     {
-      "trait_type": "Mouth",
-      "value": "Smile",
+      "trait_type": "Smoking",
+      "value": "Cigarette",
       "count": 500,
       "percentage": "5%",
       "price": 40.12,
@@ -62,7 +54,7 @@
     },
     {
       "trait_type": "Clothing",
-      "value": "Leather Jacket",
+      "value": "Tattoo",
       "count": 40,
       "percentage": "0.4%",
       "price": 50.0,
@@ -70,7 +62,7 @@
     },
     {
       "trait_type": "Background",
-      "value": "Blue",
+      "value": "Red",
       "count": 800,
       "percentage": "8%",
       "price": 39.0,

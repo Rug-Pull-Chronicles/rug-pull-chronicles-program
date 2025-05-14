@@ -135,7 +135,9 @@ function ShowScammedNft() {
 
           {error && <div className="mt-2 text-red-500 text-sm">{error}</div>}
 
-          {txSuccess && <MintSuccessMessage result={result} />}
+          {txSuccess && (
+            <MintSuccessMessage result={result} goToGallery={true} />
+          )}
         </div>
       )}
     </div>
