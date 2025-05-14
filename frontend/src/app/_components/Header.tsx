@@ -7,7 +7,7 @@ import Image from "next/image";
 
 function Header() {
   return (
-    <header className="flex items-center justify-between px-8 py-4 bg-white border-b border-gray-200 min-h-[70px] bg-custom-beige">
+    <header className="flex items-center justify-between px-8 py-4 border-b border-gray-200 min-h-[70px] bg-custom-beige">
       <div className="flex items-center gap-4">
         <Image
           src="/images/rpc-logo.png"
@@ -17,7 +17,11 @@ function Header() {
           className="object-contain"
         />
         <h1 className="text-4xl font-extrabold tracking-tight m-0">
-          Rug Pull Chronicles
+          <span className="text-tertiary-text">Rug</span>
+          <span className="text-secondary-text space-mono-bold-italic">
+            PULL
+          </span>
+          Chronicles
         </h1>
       </div>
       <div className="flex items-center justify-center">

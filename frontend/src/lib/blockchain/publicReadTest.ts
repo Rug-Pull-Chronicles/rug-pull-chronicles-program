@@ -10,7 +10,8 @@ import { publicKey } from "@metaplex-foundation/umi";
 
 export async function fetchWalletNFTs(walletAddress: string) {
   const umi = createUmi(
-    `https://mainnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIUS_API}`
+    // `https://mainnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIUS_API}`
+    "https://devnet.helius-rpc.com/?api-key=95b64147-1a14-4f59-acac-49e63277c6e4"
   ).use(mplTokenMetadata());
 
   const ownerPublicKey = publicKey(walletAddress);

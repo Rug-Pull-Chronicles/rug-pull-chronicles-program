@@ -6,7 +6,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useSearchParams } from "next/navigation";
 
 import scamsData from "@/lib/scams.json";
-import { mintNft } from "@/lib/blockchain/mintNFT";
+import { mintNft } from "@/lib/blockchain/mintNft";
 import { generateImage } from "@/lib/generateImage";
 
 const STANDARD_COLLECTION = process.env.NEXT_PUBLIC_STANDARD_COLLECTION;
