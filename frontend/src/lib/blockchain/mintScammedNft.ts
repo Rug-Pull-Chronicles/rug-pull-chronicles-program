@@ -38,8 +38,8 @@ export const mintScammedNft = async (
       wallet,
       connection,
       pubkey,
-      "NFT Name", // nftName
-      "https://your-metadata-uri.com", // nftUri
+      nftName,
+      nftUri,
       "Scam details here"
     );
 
