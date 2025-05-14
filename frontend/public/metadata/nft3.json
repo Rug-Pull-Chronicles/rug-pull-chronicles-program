@@ -1,0 +1,80 @@
+{
+  "attributes": [
+    {
+      "trait_type": "Rugged",
+      "value": "true"
+    },
+    {
+      "trait_type": "Gender",
+      "value": "Female",
+      "count": 925,
+      "percentage": "9%",
+      "price": 43.54,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Type",
+      "value": "Light",
+      "count": 5400,
+      "percentage": "54%",
+      "price": 39.61,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Expression",
+      "value": "Joy",
+      "count": 1500,
+      "percentage": "15%",
+      "price": 39.61,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Hat",
+      "value": "Wide Brim",
+      "count": 10,
+      "percentage": "0.1%",
+      "price": 53.1,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Hair",
+      "value": "Medium Red",
+      "count": 7,
+      "percentage": "0.07%",
+      "price": 53.1,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "Closed",
+      "count": 1600,
+      "percentage": "15%",
+      "price": 39.61,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Mouth",
+      "value": "Red",
+      "count": 380,
+      "percentage": "3%",
+      "price": 43.54,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Clothing",
+      "value": "Lace Blouse",
+      "count": 33,
+      "percentage": "0.3%",
+      "price": 53.1,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Background",
+      "value": "Yellow",
+      "count": 939,
+      "percentage": "9%",
+      "price": 41.54,
+      "currency": "SOL"
+    }
+  ]
+}

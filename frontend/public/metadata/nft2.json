@@ -1,0 +1,80 @@
+{
+  "attributes": [
+    {
+      "trait_type": "Rugged",
+      "value": "true"
+    },
+    {
+      "trait_type": "Gender",
+      "value": "Non-binary",
+      "count": 500,
+      "percentage": "5%",
+      "price": 45.0,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Type",
+      "value": "Alien",
+      "count": 200,
+      "percentage": "2%",
+      "price": 60.0,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Expression",
+      "value": "Surprised",
+      "count": 300,
+      "percentage": "3%",
+      "price": 60.0,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Hat",
+      "value": "None",
+      "count": 7000,
+      "percentage": "70%",
+      "price": 45.0,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Hair",
+      "value": "Long Green",
+      "count": 8,
+      "percentage": "0.08%",
+      "price": 70.0,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "Glowing",
+      "count": 100,
+      "percentage": "1%",
+      "price": 60.0,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Mouth",
+      "value": "Frown",
+      "count": 200,
+      "percentage": "2%",
+      "price": 45.0,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Clothing",
+      "value": "Space Suit",
+      "count": 20,
+      "percentage": "0.2%",
+      "price": 70.0,
+      "currency": "SOL"
+    },
+    {
+      "trait_type": "Background",
+      "value": "Galaxy",
+      "count": 150,
+      "percentage": "1.5%",
+      "price": 55.0,
+      "currency": "SOL"
+    }
+  ]
+}

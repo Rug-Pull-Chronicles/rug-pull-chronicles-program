@@ -1,0 +1,245 @@
+{
+  "traits": {
+    "year": ["2021", "2022", "2023", "2024", "2025"],
+    "amount_usd": ["$500k", "$2M", "$15M", "$50M", "$120M"],
+    "category": ["DeFi", "RWA", "NFT", "Gaming", "SocialFi"],
+    "type_of_attack": [
+      "Oracle manipulation",
+      "Flash loan attack",
+      "Phishing exploit",
+      "Rug pull",
+      "Governance attack"
+    ]
+  },
+  "scams": [
+    {
+      "id": "2021-defi-oracle-500k",
+      "year": "2021",
+      "amount_usd": "$500k",
+      "category": "DeFi",
+      "type_of_attack": "Oracle manipulation",
+      "headline": "ChainMint Drained After Price Oracle Exploit!",
+      "description": "Attackers manipulated ChainMint's price oracle, extracting $500k from the DeFi protocol."
+    },
+    {
+      "id": "2021-rwa-flashloan-2m",
+      "year": "2021",
+      "amount_usd": "$2M",
+      "category": "RWA",
+      "type_of_attack": "Flash loan attack",
+      "headline": "Tokenized Real Estate Fund Hit by Flash Loan Attack!",
+      "description": "Flash loans disrupted asset pricing, resulting in a $2M loss."
+    },
+    {
+      "id": "2021-nft-phishing-15m",
+      "year": "2021",
+      "amount_usd": "$15M",
+      "category": "NFT",
+      "type_of_attack": "Phishing exploit",
+      "headline": "RareNFT Collector Community Phished—$15M Lost!",
+      "description": "Collectors tricked by phishing emails lost $15M worth of NFTs."
+    },
+    {
+      "id": "2021-gaming-rugpull-50m",
+      "year": "2021",
+      "amount_usd": "$50M",
+      "category": "Gaming",
+      "type_of_attack": "Rug pull",
+      "headline": "Crypto Royale Developers Vanish With $50M!",
+      "description": "Game developers disappeared overnight, stealing $50M in assets."
+    },
+    {
+      "id": "2021-socialfi-governance-120m",
+      "year": "2021",
+      "amount_usd": "$120M",
+      "category": "SocialFi",
+      "type_of_attack": "Governance attack",
+      "headline": "SocialSphere DAO Suffers $120M Governance Hijack!",
+      "description": "Attackers manipulated governance, draining $120M."
+    },
+
+    {
+      "id": "2022-rwa-governance-500k",
+      "year": "2022",
+      "amount_usd": "$500k",
+      "category": "RWA",
+      "type_of_attack": "Governance attack",
+      "headline": "GreenBond DAO Compromised, Half-Million Missing!",
+      "description": "Manipulated DAO votes diverted $500k from sustainable projects."
+    },
+    {
+      "id": "2022-nft-rugpull-2m",
+      "year": "2022",
+      "amount_usd": "$2M",
+      "category": "NFT",
+      "type_of_attack": "Rug pull",
+      "headline": "PixelPunks NFT Project Vanishes Overnight!",
+      "description": "Creators abandoned project, taking $2M from investors."
+    },
+    {
+      "id": "2022-gaming-flashloan-15m",
+      "year": "2022",
+      "amount_usd": "$15M",
+      "category": "Gaming",
+      "type_of_attack": "Flash loan attack",
+      "headline": "MetaBattle Economy Crashes: Flash Loan Exploit Drains $15M!",
+      "description": "Attackers used flash loans causing a $15M loss in gaming assets."
+    },
+    {
+      "id": "2022-socialfi-oracle-50m",
+      "year": "2022",
+      "amount_usd": "$50M",
+      "category": "SocialFi",
+      "type_of_attack": "Oracle manipulation",
+      "headline": "CommunityDAO Treasury Emptied by Price Oracle Attack!",
+      "description": "Oracle exploit allowed attackers to steal $50M from the DAO treasury."
+    },
+    {
+      "id": "2022-defi-phishing-120m",
+      "year": "2022",
+      "amount_usd": "$120M",
+      "category": "DeFi",
+      "type_of_attack": "Phishing exploit",
+      "headline": "MegaYield Users Hit Hard: $120M Lost in Massive Phishing Scam!",
+      "description": "Users lost $120M after malicious approval requests."
+    },
+
+    {
+      "id": "2023-nft-flashloan-500k",
+      "year": "2023",
+      "amount_usd": "$500k",
+      "category": "NFT",
+      "type_of_attack": "Flash loan attack",
+      "headline": "Flash Loan Attack Collapses NFT Lending Platform NiftyLoan!",
+      "description": "NFT collateral prices manipulated, draining $500k."
+    },
+    {
+      "id": "2023-gaming-phishing-2m",
+      "year": "2023",
+      "amount_usd": "$2M",
+      "category": "Gaming",
+      "type_of_attack": "Phishing exploit",
+      "headline": "DragonVerse Players Phished: $2M Worth of Crypto Assets Stolen!",
+      "description": "Players tricked by phishing into revealing private keys, losing $2M."
+    },
+    {
+      "id": "2023-socialfi-rugpull-15m",
+      "year": "2023",
+      "amount_usd": "$15M",
+      "category": "SocialFi",
+      "type_of_attack": "Rug pull",
+      "headline": "Socialverse Developers Vanish After $15M Token Sale!",
+      "description": "Developers disappeared after token sale, taking $15M."
+    },
+    {
+      "id": "2023-defi-governance-50m",
+      "year": "2023",
+      "amount_usd": "$50M",
+      "category": "DeFi",
+      "type_of_attack": "Governance attack",
+      "headline": "StableSwap DAO Treasury Drained by Governance Manipulation!",
+      "description": "Attackers gained voting control, draining $50M from the treasury."
+    },
+    {
+      "id": "2023-rwa-oracle-120m",
+      "year": "2023",
+      "amount_usd": "$120M",
+      "category": "RWA",
+      "type_of_attack": "Oracle manipulation",
+      "headline": "RealAsset Token Price Oracle Compromised: Investors Lose $120M!",
+      "description": "Oracle compromise caused investors $120M in losses."
+    },
+
+    {
+      "id": "2024-gaming-rugpull-500k",
+      "year": "2024",
+      "amount_usd": "$500k",
+      "category": "Gaming",
+      "type_of_attack": "Rug pull",
+      "headline": "NFT RPG CryptoQuest Developers Flee with $500k!",
+      "description": "Developers vanished with $500k of in-game assets."
+    },
+    {
+      "id": "2024-socialfi-governance-2m",
+      "year": "2024",
+      "amount_usd": "$2M",
+      "category": "SocialFi",
+      "type_of_attack": "Governance attack",
+      "headline": "InfluenceDAO Loses $2M in Coordinated Governance Attack!",
+      "description": "Attackers manipulated votes, stealing $2M from treasury."
+    },
+    {
+      "id": "2024-defi-flashloan-15m",
+      "year": "2024",
+      "amount_usd": "$15M",
+      "category": "DeFi",
+      "type_of_attack": "Flash loan attack",
+      "headline": "FlashLoan Assault on YieldMaker DeFi Platform Nets $15M!",
+      "description": "Yield farming pools exploited via flash loans for $15M."
+    },
+    {
+      "id": "2024-rwa-phishing-50m",
+      "year": "2024",
+      "amount_usd": "$50M",
+      "category": "RWA",
+      "type_of_attack": "Phishing exploit",
+      "headline": "GoldToken Investors Hit in $50M Phishing Scam!",
+      "description": "Investors deceived by phishing campaigns, losing $50M."
+    },
+    {
+      "id": "2024-nft-oracle-120m",
+      "year": "2024",
+      "amount_usd": "$120M",
+      "category": "NFT",
+      "type_of_attack": "Oracle manipulation",
+      "headline": "MegaNFT Protocol Price Oracle Hacked: $120M NFT Liquidations!",
+      "description": "Oracle manipulation triggered $120M in forced NFT liquidations."
+    },
+
+    {
+      "id": "2025-socialfi-flashloan-500k",
+      "year": "2025",
+      "amount_usd": "$500k",
+      "category": "SocialFi",
+      "type_of_attack": "Flash loan attack",
+      "headline": "SocialFi Platform BuzzFi Suffers $500k Flash Loan Loss!",
+      "description": "Token prices manipulated via flash loans, $500k lost."
+    },
+    {
+      "id": "2025-defi-rugpull-2m",
+      "year": "2025",
+      "amount_usd": "$2M",
+      "category": "DeFi",
+      "type_of_attack": "Rug pull",
+      "headline": "YieldWave DeFi Platform Rugged: Team Disappears with $2M!",
+      "description": "Creators vanished with liquidity pools worth $2M."
+    },
+    {
+      "id": "2025-rwa-governance-15m",
+      "year": "2025",
+      "amount_usd": "$15M",
+      "category": "RWA",
+      "type_of_attack": "Governance attack",
+      "headline": "EcoFund DAO Governance Exploited, $15M Redirected!",
+      "description": "Attackers hijacked governance, redirecting $15M."
+    },
+    {
+      "id": "2025-nft-oracle-50m",
+      "year": "2025",
+      "amount_usd": "$50M",
+      "category": "NFT",
+      "type_of_attack": "Oracle manipulation",
+      "headline": "Oracle Attack Shatters NFT Lending Market—$50M Liquidated!",
+      "description": "NFT prices manipulated, resulting in $50M liquidations."
+    },
+    {
+      "id": "2025-gaming-phishing-120m",
+      "year": "2025",
+      "amount_usd": "$120M",
+      "category": "Gaming",
+      "type_of_attack": "Phishing exploit",
+      "headline": "GigaGame Players Phished in Largest Crypto Gaming Scam Yet—$120M Gone!",
+      "description": "Phishing scam misled gamers, stealing $120M worth of assets."
+    }
+  ]
+}

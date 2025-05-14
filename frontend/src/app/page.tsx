@@ -1,10 +1,25 @@
-import MintNFT from '@/components/MintNFT';
+"use client";
+
+import { useWallet } from "@solana/wallet-adapter-react";
+import { SelectScam } from "./_components/SelectScam";
+import ShowScammedNft from "./_components/ShowScammedNft";
+import { uploadMetadataToIPFS } from "@/lib/storage/uploadData";
 
 export default function Home() {
+  const { publicKey } = useWallet();
+
+  const handleUploadMetadata = async () => {
+    const metadata = await uploadMetadataToIPFS({
+      name: "test",
+      description: "test",
+    });
+    console.log(metadata);
+  };
+
   return (
-    <main className="flex min-h-screen flex-col p-6 lg:p-24">
+    <main className="flex flex-col p-6 bg-custom-beige/50 min-h-[calc(100vh-83px)]">
       <div className="mt-8 flex-grow flex justify-center items-center">
-        <MintNFT />
+        {publicKey ? <ShowScammedNft /> : <SelectScam />}
       </div>
     </main>
   );
