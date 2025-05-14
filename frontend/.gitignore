@@ -39,3 +39,5 @@ next-env.d.ts
 .vscode
 
 ar-wallet.json
+
+/public/nft-images

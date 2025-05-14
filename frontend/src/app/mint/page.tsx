@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { useSearchParams } from "next/navigation";
@@ -21,8 +21,9 @@ function MintPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [collectionAddress, setCollectionAddress] =
-    useState(STANDARD_COLLECTION);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
+    null
+  );
   const [result, setResult] = useState<{
     signature: string;
     nftAddress: string;
@@ -46,7 +47,7 @@ function MintPage() {
       return;
     }
 
-    if (!collectionAddress) {
+    if (!STANDARD_COLLECTION) {
       setError("Please enter a collection address");
       return;
     }
@@ -56,11 +57,12 @@ function MintPage() {
       setError(null);
       setSuccess(false);
       setResult(null);
+      setGeneratedImageUrl(null);
 
       // Parse collection address
       let pubkey: PublicKey;
       try {
-        pubkey = new PublicKey(collectionAddress);
+        pubkey = new PublicKey(STANDARD_COLLECTION);
       } catch (e) {
         throw new Error("Invalid collection address");
       }
@@ -73,13 +75,24 @@ function MintPage() {
         year: year.toString(),
       });
 
-      // const nftUri = await uploadMetadata(
-      //   {
-      //     name: title,
-      //     description: description,
-      //   },
-      //   imageFile
-      // );
+      // Create form data
+      const formData = new FormData();
+      formData.append("image", imageFile);
+
+      // Upload image to server
+      const response = await fetch("/api/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      const { url } = await response.json();
+
+      // Set the image URL for preview
+      setGeneratedImageUrl(url);
 
       // Use the connection from our provider
       const result = await mintNft(
@@ -87,7 +100,7 @@ function MintPage() {
         connection,
         pubkey,
         headline,
-        "https://arweave.net/123",
+        url,
         year.toString(),
         amount_usd,
         category,
@@ -116,6 +129,14 @@ function MintPage() {
 
   // Generate fake rekt.news article URL
   const rektNewsUrl = "https://rekt.news/dystopian-diaries";
+
+  useEffect(() => {
+    return () => {
+      if (generatedImageUrl) {
+        URL.revokeObjectURL(generatedImageUrl);
+      }
+    };
+  }, [generatedImageUrl]);
 
   return (
     <div className="min-h-[calc(100vh-83px)] flex items-center justify-center bg-custom-beige/50 flex flex-col px-16">
@@ -173,14 +194,29 @@ function MintPage() {
             Read the full rekt.news article →
           </a>
         </div>
+
+        {generatedImageUrl && (
+          <div className="mt-4">
+            <h4 className="text-gray-900 text-sm font-bold mb-2">
+              Generated NFT Preview
+            </h4>
+            <div className="relative w-full aspect-square max-w-md mx-auto">
+              <img
+                src={generatedImageUrl}
+                alt="Generated NFT"
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
         <button
           onClick={handleMint}
-          disabled={loading || !wallet.publicKey || !collectionAddress}
+          disabled={loading || !wallet.publicKey}
           className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
-            !wallet.publicKey || !collectionAddress
+            !wallet.publicKey
               ? "bg-tertiary-text/40 text-tertiary-text cursor-not-allowed"
               : loading
               ? "bg-tertiary-text/40 text-tertiary-text cursor-wait"
