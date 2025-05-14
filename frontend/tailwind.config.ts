@@ -12,6 +12,7 @@ const config: Config = {
         "custom-beige": "#f6ebda",
         "secondary-text": "#36a59e",
         "tertiary-text": "#e9c12f",
+        accent: "#f8485d",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

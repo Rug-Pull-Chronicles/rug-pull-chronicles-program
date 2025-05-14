@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import scamsData from "@/lib/scams.json";
 import { mintNft } from "@/lib/blockchain/mintNft";
 import { generateImage } from "@/lib/generateImage";
+import { MintSuccessMessage } from "@/app/_components/MintSuccessMessage";
 
 const STANDARD_COLLECTION = process.env.NEXT_PUBLIC_STANDARD_COLLECTION;
 
@@ -117,7 +118,7 @@ function MintPage() {
   const rektNewsUrl = "https://rekt.news/dystopian-diaries";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-custom-beige/50 flex flex-col px-16">
+    <div className="min-h-[calc(100vh-83px)] flex items-center justify-center bg-custom-beige/50 flex flex-col px-16">
       <div className="mb-6 rounded-lg p-4 bg-white shadow border border-gray-200">
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-xl font-bold text-gray-900">{headline}</h3>
@@ -129,21 +130,21 @@ function MintPage() {
         <p className="text-gray-700 mb-4">{description}</p>
 
         <div className="grid grid-cols-2 gap-2 text-sm mb-4">
-          <div className="bg-gray-100 p-2 rounded">
+          <div className="bg-secondary-text/40 p-2 rounded">
             <span className="text-gray-500">Category:</span>
             <span className="text-gray-900 ml-1 font-medium">{category}</span>
           </div>
-          <div className="bg-gray-100 p-2 rounded">
+          <div className="bg-secondary-text/40 p-2 rounded">
             <span className="text-gray-500">Attack Type:</span>
             <span className="text-gray-900 ml-1 font-medium">
               {type_of_attack}
             </span>
           </div>
-          <div className="bg-gray-100 p-2 rounded">
+          <div className="bg-secondary-text/40 p-2 rounded">
             <span className="text-gray-500">Year:</span>
             <span className="text-gray-900 ml-1 font-medium">{year}</span>
           </div>
-          <div className="bg-gray-100 p-2 rounded">
+          <div className="bg-secondary-text/40 p-2 rounded">
             <span className="text-gray-500">Date:</span>
             <span className="text-gray-900 ml-1 font-medium">
               {randomDate()}
@@ -180,10 +181,10 @@ function MintPage() {
           disabled={loading || !wallet.publicKey || !collectionAddress}
           className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
             !wallet.publicKey || !collectionAddress
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              ? "bg-tertiary-text/40 text-tertiary-text cursor-not-allowed"
               : loading
-              ? "bg-purple-200 text-purple-900 cursor-wait"
-              : "bg-purple-600 hover:bg-purple-700 text-white"
+              ? "bg-tertiary-text/40 text-tertiary-text cursor-wait"
+              : "bg-tertiary-text hover:bg-tertiary-text/80 text-white"
           }`}
         >
           {loading
@@ -200,45 +201,7 @@ function MintPage() {
         </div>
       )}
 
-      {success && (
-        <div className="mt-4 p-4 bg-green-100 border border-green-200 rounded-md text-green-800">
-          <h3 className="font-medium text-lg mb-2">NFT Minted Successfully!</h3>
-          {result ? (
-            <div className="space-y-2 text-sm">
-              <p className="break-all">
-                <span className="font-semibold">NFT Address:</span>{" "}
-                {result.nftAddress}
-              </p>
-              <p className="break-all">
-                <span className="font-semibold">Transaction:</span>{" "}
-                {result.signature}
-              </p>
-              <div className="flex justify-between mt-2">
-                <a
-                  href={`https://explorer.solana.com/address/${result.nftAddress}?cluster=devnet`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-green-700 hover:text-green-900 underline text-xs"
-                >
-                  View NFT on Explorer
-                </a>
-                <a
-                  href={`https://explorer.solana.com/tx/${result.signature}?cluster=devnet`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-green-700 hover:text-green-900 underline text-xs"
-                >
-                  View Transaction
-                </a>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm">
-              NFT minted successfully, but result details are not available.
-            </p>
-          )}
-        </div>
-      )}
+      {success && <MintSuccessMessage result={result} />}
     </div>
   );
 }

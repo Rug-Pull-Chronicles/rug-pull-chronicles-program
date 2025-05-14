@@ -6,6 +6,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useCustomConnection } from "@/providers/ConnectionProvider";
 import { PublicKey } from "@solana/web3.js";
 import { mintScammedNft } from "@/lib/blockchain/mintScammedNft";
+import { MintSuccessMessage } from "@/app/_components/MintSuccessMessage";
 
 const placeholderNfts = [
   {
@@ -32,6 +33,10 @@ function ShowScammedNft() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [txSuccess, setTxSuccess] = useState<boolean>(false);
+  const [result, setResult] = useState<{
+    signature: string;
+    nftAddress: string;
+  } | null>(null);
 
   const wallet = useWallet();
   const { connectionToUse } = useCustomConnection();
@@ -48,8 +53,6 @@ function ShowScammedNft() {
     const nft = placeholderNfts.find((nft) => nft.id === selectedNft);
     if (!nft) return;
 
-    // Collection address - this should be configured properly for your app
-    // This is just a placeholder
     const collectionAddress = new PublicKey(
       SCAMMED_COLLECTION_ADDRESS as string
     );
@@ -68,6 +71,7 @@ function ShowScammedNft() {
 
       console.log("Minting result:", result);
       setTxSuccess(true);
+      setResult(result);
     } catch (err: any) {
       console.error("Error minting NFT:", err);
       setError(err.message || "Failed to mint NFT");
@@ -79,22 +83,22 @@ function ShowScammedNft() {
   return (
     <div className="max-w-4xl mx-auto py-6 px-4">
       <h2 className="text-xl font-bold mb-6 text-center">
-        Select one of the lost NFTs
+        It looks like you lost the following NFTs.
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {placeholderNfts.map((nft) => (
           <div
             key={nft.id}
-            className={`border rounded-lg p-4 cursor-pointer transition-all ${
+            className={`border-2 p-4 cursor-pointer transition-all ${
               selectedNft === nft.id
-                ? "border-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20"
-                : "hover:shadow-md"
+                ? "border-tertiary-text shadow-lg bg-secondary-text"
+                : "hover:shadow-md bg-secondary-text/50"
             }`}
             onClick={() => handleSelectNft(nft.id)}
           >
-            <div className="aspect-square relative mb-3 overflow-hidden rounded-md">
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <div className="aspect-square relative mb-3 overflow-hidden">
+              <div className="w-full h-full flex items-center justify-center">
                 <Image
                   src={nft.image}
                   width={250}
@@ -108,7 +112,7 @@ function ShowScammedNft() {
             <h3 className="font-medium">{nft.name}</h3>
 
             {selectedNft === nft.id && (
-              <div className="mt-2 text-blue-600 text-sm font-medium">
+              <div className="mt-2 text-tertiary-text text-sm font-medium">
                 Selected
               </div>
             )}
@@ -119,22 +123,18 @@ function ShowScammedNft() {
       {selectedNft && (
         <div className="mt-6 text-center">
           <button
-            className={`px-4 py-2 bg-blue-600 text-white rounded-md ${
-              isLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-blue-700"
+            className={`px-4 py-2 bg-accent text-white ${
+              isLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-accent/80"
             }`}
             onClick={handleMintNft}
             disabled={isLoading}
           >
-            {isLoading ? "Processing..." : "Continue with selected NFT"}
+            {isLoading ? "Minting..." : "Continue with selected NFT"}
           </button>
 
           {error && <div className="mt-2 text-red-500 text-sm">{error}</div>}
 
-          {txSuccess && (
-            <div className="mt-2 text-green-500 text-sm">
-              NFT minted successfully!
-            </div>
-          )}
+          {txSuccess && <MintSuccessMessage result={result} />}
         </div>
       )}
     </div>

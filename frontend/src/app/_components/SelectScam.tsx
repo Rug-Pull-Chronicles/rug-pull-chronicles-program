@@ -77,7 +77,7 @@ export function SelectScam() {
             {filteredScams.map((scam, idx) => (
               <li
                 key={idx}
-                className="border p-4 bg-white dark:bg-neutral-800 shadow hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer transition"
+                className="border-secondary-text border-2 p-4 bg-white shadow cursor-pointer transition hover:border-r-4 hover:border-b-4 hover:border-l hover:border-t"
                 onClick={() => handleScamSelect(scam)}
               >
                 <div className="font-bold text-base mb-1">{scam.headline}</div>

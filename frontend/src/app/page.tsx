@@ -17,10 +17,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-col p-6 bg-custom-beige/50 h-[calc(100vh-70px)]">
-      <div>
-        <button onClick={handleUploadMetadata}>Upload Metadata</button>
-      </div>
+    <main className="flex flex-col p-6 bg-custom-beige/50 min-h-[calc(100vh-83px)]">
       <div className="mt-8 flex-grow flex justify-center items-center">
         {publicKey ? <ShowScammedNft /> : <SelectScam />}
       </div>
