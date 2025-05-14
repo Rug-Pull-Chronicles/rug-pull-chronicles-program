@@ -40,7 +40,7 @@ export const mintScammedNft = async (
       pubkey,
       nftName,
       nftUri,
-      "Scam details here"
+      `${nftName} Rugged`
     );
 
     return result;

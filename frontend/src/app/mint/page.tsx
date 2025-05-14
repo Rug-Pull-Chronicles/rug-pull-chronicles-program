@@ -6,7 +6,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useSearchParams } from "next/navigation";
 
 import scamsData from "@/lib/scams.json";
-import { mintNft } from "@/lib/blockchain/mintNft";
+import { mintNft } from "@/lib/blockchain/mintNFT";
 import { generateImage } from "@/lib/generateImage";
 import { MintSuccessMessage } from "@/app/_components/MintSuccessMessage";
 

@@ -3,18 +3,9 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { SelectScam } from "./_components/SelectScam";
 import ShowScammedNft from "./_components/ShowScammedNft";
-import { uploadMetadataToIPFS } from "@/lib/storage/uploadData";
 
 export default function Home() {
   const { publicKey } = useWallet();
-
-  const handleUploadMetadata = async () => {
-    const metadata = await uploadMetadataToIPFS({
-      name: "test",
-      description: "test",
-    });
-    console.log(metadata);
-  };
 
   return (
     <main className="flex flex-col p-6 bg-custom-beige/50 min-h-[calc(100vh-83px)]">

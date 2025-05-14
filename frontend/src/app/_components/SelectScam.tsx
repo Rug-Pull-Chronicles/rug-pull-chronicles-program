@@ -19,6 +19,7 @@ export function SelectScam() {
     let result = scams;
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
+        // @ts-ignore
         result = result.filter((scam) => scam[key] === value);
       }
     });

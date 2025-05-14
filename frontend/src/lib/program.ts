@@ -3,8 +3,8 @@ import { Connection, SystemProgram } from "@solana/web3.js";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { PublicKey, Keypair } from "@solana/web3.js";
 
-import rawIdl from "../../../target/idl/rug_pull_chronicles_program.json";
-import { RugPullChroniclesProgram } from "../../../target/types/rug_pull_chronicles_program";
+import rawIdl from "@/lib/blockchain/idl/rug_pull_chronicles_program.json";
+import { RugPullChroniclesProgram } from "@/lib/blockchain/types/rug_pull_chronicles_program";
 
 const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID as string);
 

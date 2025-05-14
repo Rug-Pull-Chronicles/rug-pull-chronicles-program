@@ -1,6 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
-import rawIdl from "../../../target/idl/rug_pull_chronicles_program.json";
+import rawIdl from "@/lib/blockchain/idl/rug_pull_chronicles_program.json";
 
 // Program ID
 const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID as string);
@@ -49,7 +49,9 @@ async function main() {
       // @ts-ignore - using null wallet for read-only operations
       {
         publicKey: PublicKey.default,
+        // @ts-ignore - using null wallet for read-only operations
         signTransaction: async () => {},
+        // @ts-ignore - using null wallet for read-only operations
         signAllTransactions: async () => {},
       },
       { commitment: "confirmed", skipPreflight: false }
